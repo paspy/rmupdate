@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+该文件的文件名命名规范为：%AbsVer.%SubAbsVer.xml
+如：绝对主版本号为22，绝对子版本号为0，则文件名应为22.0.xml
+-->
+<update>
+	<!--
+	AbsVer为绝对主版本号，SubAbsVer为绝对子版本号，该两项值定义请看“工程配置文件.xml“
+	UpdateTime为该列表更新的时间，值为Unix时间戳，精确到秒
+	-->
+	<AbsVer></AbsVer>
+	<SubAbsVer></SubAbsVer>
+	<UpdateTime></UpdateTime>
+	
+	<!--
+	files为所有文件的列表
+	file的值为文件的相对路径，使用反斜杠作为目录分隔符；该元素的的md5属性为文件的MD5值
+	-->
+	<files>
+		<file md5=""></file>
+	</files>
+</update>

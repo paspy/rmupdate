@@ -17,6 +17,7 @@
 
 #include "RMupdateManagerApp.h"
 #include "RMupdateManagerMain.h"
+#include "RMupdateManagerConfig.h"
 #include "ticpp/tinyxml.h"
 
 IMPLEMENT_APP(RMupdateManagerApp);
@@ -24,9 +25,8 @@ DECLARE_APP(RMupdateManagerApp);
 
 bool RMupdateManagerApp::OnInit()
 {
-    RMupdateManagerFrame* frame = new RMupdateManagerFrame(0L);
-
-    frame->Show();
+    RMupdateManagerFrame* frameProject = new RMupdateManagerFrame(0L);
+    frameProject->Show();
 
     return true;
 }
@@ -105,4 +105,116 @@ bool RMupdateManagerApp::LoadProjConfig(const char* path)
 proj_info_t RMupdateManagerApp::GetProjInfo()
 {
     return this->ProjInfo;
+}
+
+bool RMupdateManagerApp::CreateProj()
+{
+    //选择文件夹
+    wxDirDialog dlg(NULL);
+
+    if (dlg.ShowModal() != wxID_OK) return false;
+
+    char ConfigFile[2048];
+    strcpy(ConfigFile, dlg.GetPath().mb_str());
+
+    //检查是否已经存在一个工程
+    FILE* fp;
+    fp = fopen(ConfigFile, "r");
+    if (fp && wxMessageDialog(NULL, _T("该目录下似乎已经创建了一个工程，是否覆盖？"), _T("似乎已经存在工程"), wxYES | wxNO | wxICON_QUESTION).ShowModal() != wxID_YES) return false;
+
+    if (!this->CreateProjConfig(ConfigFile)) return false;
+
+    RMupdateManagerConfig* frameConfig = new RMupdateManagerConfig(0L);
+    frameConfig->Show();
+    return true;
+
+}
+
+bool RMupdateManagerApp::CreateProjConfig(const char* path)
+{
+    char ConfigPath[2048];
+    char Path00[2048];
+    char timestr[100];
+
+    strcpy(ConfigPath, path);
+    strcpy(Path00, path);
+    strcat(ConfigPath, "/config.xml");
+    strcat(Path00, "/0.0.xml");
+
+    sprintf(timestr, "%ld", time(NULL));
+
+    //创建XML文件
+    try {
+        TiXmlDocument* doc = new TiXmlDocument(ConfigPath);
+
+        TiXmlElement* root = new TiXmlElement("project");
+        doc->LinkEndChild(root);
+
+        TiXmlElement* name = new TiXmlElement("name");
+        name->LinkEndChild(new TiXmlText("未命名"));
+        root->LinkEndChild(name);
+
+        TiXmlElement* AbsVer;
+        AbsVer = new TiXmlElement("AbsVer");
+        AbsVer->LinkEndChild(new TiXmlText("0"));
+        root->LinkEndChild(AbsVer);
+
+        TiXmlElement* SubAbsVer;
+        SubAbsVer = new TiXmlElement("SubAbsVer");
+        SubAbsVer->LinkEndChild(new TiXmlText("0"));
+        root->LinkEndChild(SubAbsVer);
+
+        TiXmlElement* UpdateTime;
+        UpdateTime = new TiXmlElement("UpdateTime");
+        UpdateTime->LinkEndChild(new TiXmlText(timestr));
+        root->LinkEndChild(UpdateTime);
+
+        root->LinkEndChild(new TiXmlElement("MappingDirs"));
+        root->LinkEndChild(new TiXmlElement("MappingFiles"));
+
+        doc->SaveFile();
+        delete doc;
+
+        //创建0.0.xml文件
+        doc = new TiXmlDocument(Path00);
+        TiXmlElement* update = new TiXmlElement("update");
+        doc->LinkEndChild(update);
+
+        TiXmlElement* AbsVer1;
+        AbsVer1 = new TiXmlElement("AbsVer");
+        AbsVer1->LinkEndChild(new TiXmlText("0"));
+
+        TiXmlElement* SubAbsVer1;
+        SubAbsVer1 = new TiXmlElement("SubAbsVer");
+        SubAbsVer1->LinkEndChild(new TiXmlText("0"));
+
+        TiXmlElement* UpdateTime1;
+        UpdateTime1 = new TiXmlElement("UpdateTime");
+        UpdateTime1->LinkEndChild(new TiXmlText(timestr));
+
+        update->LinkEndChild(AbsVer1);
+        update->LinkEndChild(SubAbsVer1);
+        update->LinkEndChild(UpdateTime1);
+        update->LinkEndChild(new TiXmlElement("files"));
+
+        doc->SaveFile();
+
+    }
+    catch (int e) {
+        wxMessageDialog(NULL, _T("无法创建配置文件"), _T("错误"),wxOK | wxICON_EXCLAMATION).ShowModal();
+        return false;
+    }
+
+    //保存工程属性
+    proj_info_t proj;
+    proj.name = wxString("未命名", wxConvUTF8);
+    this->SaveProjInfo(proj);
+
+    return true;
+}
+
+bool RMupdateManagerApp::SaveProjInfo(proj_info_t proj)
+{
+    ProjInfo = proj;
+    return true;
 }

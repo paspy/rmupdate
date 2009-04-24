@@ -76,3 +76,105 @@ FrameProject::~FrameProject()
 	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( FrameProject::OnCreateProj ) );
 	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( FrameProject::OnOpenProj ) );
 }
+
+FrameConfig::FrameConfig( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+	
+	wxBoxSizer* bSizer7;
+	bSizer7 = new wxBoxSizer( wxVERTICAL );
+	
+	wxFlexGridSizer* fgSizer3;
+	fgSizer3 = new wxFlexGridSizer( 2, 2, 0, 0 );
+	fgSizer3->SetFlexibleDirection( wxBOTH );
+	fgSizer3->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	
+	m_staticText6 = new wxStaticText( this, wxID_ANY, wxT("工程名："), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText6->Wrap( -1 );
+	fgSizer3->Add( m_staticText6, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+	
+	m_textCtrlProjName = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 350,-1 ), 0 );
+	fgSizer3->Add( m_textCtrlProjName, 0, wxALL|wxALIGN_CENTER_HORIZONTAL, 5 );
+	
+	bSizer7->Add( fgSizer3, 0, wxEXPAND, 5 );
+	
+	wxBoxSizer* bSizer8;
+	bSizer8 = new wxBoxSizer( wxVERTICAL );
+	
+	m_gridMapping = new wxGrid( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
+	
+	// Grid
+	m_gridMapping->CreateGrid( 1, 3 );
+	m_gridMapping->EnableEditing( false );
+	m_gridMapping->EnableGridLines( true );
+	m_gridMapping->EnableDragGridSize( false );
+	m_gridMapping->SetMargins( 0, 0 );
+	
+	// Columns
+	m_gridMapping->SetColSize( 0, 148 );
+	m_gridMapping->SetColSize( 1, 169 );
+	m_gridMapping->SetColSize( 2, 80 );
+	m_gridMapping->EnableDragColMove( false );
+	m_gridMapping->EnableDragColSize( true );
+	m_gridMapping->SetColLabelSize( 30 );
+	m_gridMapping->SetColLabelAlignment( wxALIGN_CENTRE, wxALIGN_CENTRE );
+	
+	// Rows
+	m_gridMapping->EnableDragRowSize( true );
+	m_gridMapping->SetRowLabelSize( 80 );
+	m_gridMapping->SetRowLabelAlignment( wxALIGN_CENTRE, wxALIGN_CENTRE );
+	
+	// Label Appearance
+	
+	// Cell Defaults
+	m_gridMapping->SetDefaultCellAlignment( wxALIGN_LEFT, wxALIGN_TOP );
+	bSizer8->Add( m_gridMapping, 1, wxALL|wxEXPAND, 5 );
+	
+	bSizer7->Add( bSizer8, 1, wxEXPAND, 5 );
+	
+	wxBoxSizer* bSizer9;
+	bSizer9 = new wxBoxSizer( wxVERTICAL );
+	
+	wxGridSizer* gSizer2;
+	gSizer2 = new wxGridSizer( 1, 5, 0, 0 );
+	
+	m_buttonAddFile = new wxButton( this, wxID_ADDFILE, wxT("增加文件"), wxDefaultPosition, wxDefaultSize, 0 );
+	gSizer2->Add( m_buttonAddFile, 0, wxALL, 5 );
+	
+	m_buttonAddDir = new wxButton( this, wxID_ADDDIR, wxT("增加目录"), wxDefaultPosition, wxDefaultSize, 0 );
+	gSizer2->Add( m_buttonAddDir, 0, wxALL, 5 );
+	
+	m_buttonDelete = new wxButton( this, wxID_CHECK, wxT("删除"), wxDefaultPosition, wxDefaultSize, 0 );
+	gSizer2->Add( m_buttonDelete, 0, wxALL, 5 );
+	
+	m_buttonSave = new wxButton( this, wxID_SAVE, wxT("更新并保存"), wxDefaultPosition, wxDefaultSize, 0 );
+	gSizer2->Add( m_buttonSave, 0, wxALL, 5 );
+	
+	m_buttonRelease = new wxButton( this, wxID_RELEASE, wxT("发布"), wxDefaultPosition, wxDefaultSize, 0 );
+	gSizer2->Add( m_buttonRelease, 0, wxALL, 5 );
+	
+	bSizer9->Add( gSizer2, 1, wxEXPAND, 5 );
+	
+	bSizer7->Add( bSizer9, 0, wxEXPAND, 5 );
+	
+	this->SetSizer( bSizer7 );
+	this->Layout();
+	m_statusBar = this->CreateStatusBar( 1, wxST_SIZEGRIP, wxID_ANY );
+	
+	// Connect Events
+	m_buttonAddFile->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnAddFile ), NULL, this );
+	m_buttonAddDir->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnAddDir ), NULL, this );
+	m_buttonDelete->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnCheck ), NULL, this );
+	m_buttonSave->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnSave ), NULL, this );
+	m_buttonRelease->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnRelease ), NULL, this );
+}
+
+FrameConfig::~FrameConfig()
+{
+	// Disconnect Events
+	m_buttonAddFile->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnAddFile ), NULL, this );
+	m_buttonAddDir->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnAddDir ), NULL, this );
+	m_buttonDelete->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnCheck ), NULL, this );
+	m_buttonSave->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnSave ), NULL, this );
+	m_buttonRelease->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnRelease ), NULL, this );
+}

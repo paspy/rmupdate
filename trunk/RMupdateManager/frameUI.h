@@ -21,9 +21,17 @@
 #include <wx/stattext.h>
 #include <wx/sizer.h>
 #include <wx/frame.h>
+#include <wx/textctrl.h>
+#include <wx/grid.h>
+#include <wx/button.h>
+#include <wx/statusbr.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
+#define wxID_ADDFILE 1000
+#define wxID_ADDDIR 1001
+#define wxID_CHECK 1002
+#define wxID_RELEASE 1003
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class FrameProject
@@ -47,6 +55,38 @@ class FrameProject : public wxFrame
 	public:
 		FrameProject( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("RMupdateManager"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 344,194 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~FrameProject();
+	
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class FrameConfig
+///////////////////////////////////////////////////////////////////////////////
+class FrameConfig : public wxFrame 
+{
+	private:
+	
+	protected:
+		wxStaticText* m_staticText6;
+		wxTextCtrl* m_textCtrlProjName;
+		wxGrid* m_gridMapping;
+		wxButton* m_buttonAddFile;
+		wxButton* m_buttonAddDir;
+		wxButton* m_buttonDelete;
+		wxButton* m_buttonSave;
+		wxButton* m_buttonRelease;
+		wxStatusBar* m_statusBar;
+		
+		// Virtual event handlers, overide them in your derived class
+		virtual void OnAddFile( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnAddDir( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnCheck( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnSave( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnRelease( wxCommandEvent& event ){ event.Skip(); }
+		
+	
+	public:
+		FrameConfig( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("工程管理"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 497,342 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		~FrameConfig();
 	
 };
 

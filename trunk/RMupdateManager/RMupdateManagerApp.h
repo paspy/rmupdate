@@ -41,15 +41,20 @@ struct proj_info_t{
 class RMupdateManagerApp : public wxApp
 {
     public:
+
         virtual bool OnInit();
 
         proj_info_t GetProjInfo();
         bool SaveProjInfo(proj_info_t proj);
         bool OpenProj();
+        bool CreateProj();
         bool LoadProjConfig(const char* path);
 
     private:
-       proj_info_t ProjInfo;
+        proj_info_t ProjInfo;
+
+        bool CreateProjConfig(const char* path);
+
 
 };
 
