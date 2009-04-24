@@ -16,14 +16,14 @@
 #endif //__BORLANDC__
 
 #include "RMupdateManagerMain.h"
-
+#include "RMupdateManagerMain.h"
 DECLARE_APP(RMupdateManagerApp);
 
 //helper functions
 enum wxbuildinfoformat {
     short_f, long_f };
 
-wxString wxbuildinfo(wxbuildinfoformat format)
+/*wxString wxbuildinfo(wxbuildinfoformat format)
 {
     wxString wxbuild(wxVERSION_STRING);
 
@@ -45,7 +45,7 @@ wxString wxbuildinfo(wxbuildinfoformat format)
     }
 
     return wxbuild;
-}
+}*/
 
 
 RMupdateManagerFrame::RMupdateManagerFrame(wxFrame *frame)
@@ -75,6 +75,7 @@ void RMupdateManagerFrame::OnAbout(wxCommandEvent &event)
 
 void RMupdateManagerFrame::OnCreateProj( wxCommandEvent& event )
 {
+    if (wxGetApp().CreateProj());
 }
 
 void RMupdateManagerFrame::OnOpenProj( wxCommandEvent& event )
@@ -99,5 +100,4 @@ void RMupdateManagerFrame::OnOpenProj( wxCommandEvent& event )
 
         m_staticTextProjInfo->SetLabel(info);
     }
-
 }
