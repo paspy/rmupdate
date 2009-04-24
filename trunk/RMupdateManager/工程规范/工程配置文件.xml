@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	<name>工程名字</name>
+	
+	<!--
+	AbsVer，SubAbsVer
+	工程绝对版本号
+	AbsVer，工程绝对版本的主版本号，这个版本号是自2001年1月1日起经过的天数，2001年1月1日为第0天
+	SbuAbsVer，工程绝对版本的子版本号，如果在同一天多次更新工程，则该值+1，默认值为0
+	-->
+	<AbsVer></AbsVer>
+	<SubAbsVer></SubAbsVer>
+	
+	<!--UpdateTime，更新时间，单位是Unix时间戳-->
+	<UpdateTime></UpdateTime>
+	
+	<!--
+	映射目录列表
+	SrcPath是源路径，DesPath是映射到的路径
+	-->
+	<MappingDirs>
+		<dir>
+			<SrcPath></SrcPath>
+			<DesPath></DesPath>
+		</dir>
+	</MappingDirs>
+	
+	<!--
+	映射文件表
+	-->
+	<MappingFiles>
+		<file>
+			<SrcPath></SrcPath>
+			<DesPath></DesPath>
+		</file>
+	</MappingFiles>
+</project>

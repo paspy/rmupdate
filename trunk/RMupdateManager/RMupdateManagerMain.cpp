@@ -17,6 +17,8 @@
 
 #include "RMupdateManagerMain.h"
 
+DECLARE_APP(RMupdateManagerApp);
+
 //helper functions
 enum wxbuildinfoformat {
     short_f, long_f };
@@ -68,5 +70,28 @@ void RMupdateManagerFrame::OnQuit(wxCommandEvent &event)
 
 void RMupdateManagerFrame::OnAbout(wxCommandEvent &event)
 {
+
+}
+
+void RMupdateManagerFrame::OnCreateProj( wxCommandEvent& event )
+{
+}
+
+void RMupdateManagerFrame::OnOpenProj( wxCommandEvent& event )
+{
+    if (wxGetApp().OpenProj()) {;
+        //在工程主窗口中显示工程信息
+        wxString info;
+        proj_info_t proj = wxGetApp().GetProjInfo();
+
+        info.sprintf(_T("工程版本号：%ld.%ld\n映射目录数：%ld\n映射文件数：%ld\n最后更新时间：%ld"),
+                        proj.AbsVer,
+                        proj.SubAbsVer,
+                        proj.MappingDirs.SrcPath.Count(),
+                        proj.MappingFiles.SrcPath.Count(),
+                        proj.UpdateTime);
+        info = _T("工程名：") + proj.name + wxT("\n") + info;
+        m_staticTextProjInfo->SetLabel(info);
+    }
 
 }
