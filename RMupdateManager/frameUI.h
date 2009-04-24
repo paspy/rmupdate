@@ -45,7 +45,7 @@ class FrameProject : public wxFrame
 		
 	
 	public:
-		FrameProject( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("RMupdateManager"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 273,251 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		FrameProject( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("RMupdateManager"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 344,194 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~FrameProject();
 	
 };

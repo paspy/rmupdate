@@ -24,6 +24,11 @@ struct mapping_files_t{
     wxArrayString DesPath;
 };
 
+struct fileinfo_t{
+    wxArrayString path;
+    wxArrayString md5;
+};
+
 struct proj_info_t{
     wxString name;
     mapping_dirs_t MappingDirs;
