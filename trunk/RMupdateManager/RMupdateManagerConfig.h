@@ -25,11 +25,11 @@ class RMupdateManagerConfig: public FrameConfig
     private:
         virtual void OnClose(wxCloseEvent& event);
         virtual void OnQuit(wxCommandEvent& event);
-		virtual void OnAddFile( wxCommandEvent& event ){ event.Skip(); }
-		virtual void OnAddDir( wxCommandEvent& event ){ event.Skip(); }
-		virtual void OnCheck( wxCommandEvent& event ){ event.Skip(); }
-		virtual void OnSave( wxCommandEvent& event ){ event.Skip(); }
-		virtual void OnRelease( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnAddFile( wxCommandEvent& event );
+		virtual void OnAddDir( wxCommandEvent& event );
+		virtual void OnCheck( wxCommandEvent& event );
+		virtual void OnSave( wxCommandEvent& event );
+		virtual void OnRelease( wxCommandEvent& event );
 
 		void SetStatus(wxString& info);
 };

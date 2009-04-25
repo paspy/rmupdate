@@ -16,7 +16,7 @@
 #endif //__BORLANDC__
 
 #include "RMupdateManagerMain.h"
-#include "RMupdateManagerMain.h"
+#include "RMupdateManagerConfig.h"
 DECLARE_APP(RMupdateManagerApp);
 
 //helper functions
@@ -80,7 +80,10 @@ void RMupdateManagerFrame::OnCreateProj( wxCommandEvent& event )
 
 void RMupdateManagerFrame::OnOpenProj( wxCommandEvent& event )
 {
-    if (wxGetApp().OpenProj()) {;
+    if (wxGetApp().OpenProj()) {
+        RMupdateManagerConfig* frameConfig = new RMupdateManagerConfig(0L);
+        frameConfig->Show();
+
         //在工程主窗口中显示工程信息
         wxString info;
         proj_info_t proj = wxGetApp().GetProjInfo();
