@@ -35,6 +35,7 @@ class RMupdateManagerConfig: public FrameConfig
 		long CompareFilesList(fileinfo_t*& src, fileinfo_t*& des);    //返回不同的文件个数
 		bool LoadFolderFiles2List(fileinfo_t*& list, wxString SrcPath, wxString DesPath);
 		bool LoadFile2List(fileinfo_t*& list, wxString SrcPath, wxString DesPath);
+		bool SaveFilesList();
 
 		bool MappingChanged;
 		fileinfo_t* SrcFilesList;

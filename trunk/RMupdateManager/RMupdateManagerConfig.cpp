@@ -18,6 +18,7 @@
 #include "RMupdateManagerConfig.h"
 #include <wx/dir.h>
 #include "lib/md5.h"
+#include "ticpp/tinyxml.h"
 
 DECLARE_APP(RMupdateManagerApp);
 
@@ -246,12 +247,8 @@ void RMupdateManagerConfig::OnRelease(wxCommandEvent& event)
     }
 
     wxGetApp().SetProjInfo(proj);
-    if (wxGetApp().SaveProject()) {
-        SetStatus(_T("保存文件成功"));
-    }
-    else {
-        SetStatus(_T("保存文件失败"));
-    }
+    wxGetApp().SaveProject();
+    SaveFilesList();
 }
 
 void RMupdateManagerConfig::OnTextChange(wxCommandEvent& event)
@@ -268,7 +265,7 @@ bool RMupdateManagerConfig::LoadFilesList()
     fileinfo_t* list;
     int i;
 
-    list = this->SrcFilesList;
+    list = this->DesFilesList;
     list->DesPath.Clear();
     list->SrcPath.Clear();
     list->md5.Clear();
@@ -301,6 +298,7 @@ bool RMupdateManagerConfig::LoadFolderFiles2List(fileinfo_t*& list, wxString Src
     for (i = 0; i < paths.Count(); i++) {
         //这里得到的paths[i]是绝对路径
         wxString DesPathIn = paths[i].Mid(SrcPath.Length() + 1, wxSTRING_MAXLEN);
+        if (DesPath != wxT("")) DesPathIn = DesPath + wxT("/") + DesPathIn;
         LoadFile2List(list, paths[i], DesPathIn);
     }
 
@@ -387,6 +385,52 @@ long RMupdateManagerConfig::CompareFilesList(fileinfo_t*& src, fileinfo_t*& des)
     return UnflagSrcNum + UnflagDesNum + ModifiedNum;
 }
 
+bool RMupdateManagerConfig::SaveFilesList()
+{
+    proj_info_t proj = wxGetApp().GetProjInfo();
+    char tmp[1024];
+    char path[1024];
 
+    strcpy(path, proj.ProjPath.mb_str());
+    sprintf(tmp, "/%ld.%ld.xml", proj.AbsVer, proj.SubAbsVer);
+    strcat(path, tmp);
+
+    printf("path: %s\n", path);
+
+    TiXmlDocument* doc = new TiXmlDocument(path);
+    TiXmlElement* root = new TiXmlElement("update");
+    doc->LinkEndChild(root);
+
+    TiXmlElement* AbsVer = new TiXmlElement("AbsVer");
+    sprintf(tmp, "%ld", proj.AbsVer);
+    AbsVer->LinkEndChild(new TiXmlText(tmp));
+    root->LinkEndChild(AbsVer);
+
+    TiXmlElement* SubAbsVer = new TiXmlElement("SubAbsVer");
+    sprintf(tmp, "%ld", proj.SubAbsVer);
+    SubAbsVer->LinkEndChild(new TiXmlText(tmp));
+    root->LinkEndChild(SubAbsVer);
+
+    TiXmlElement* UpdateTime = new TiXmlElement("UpdateTime");
+    sprintf(tmp, "%ld", proj.UpdateTime);
+    UpdateTime->LinkEndChild(new TiXmlText(tmp));
+    root->LinkEndChild(UpdateTime);
+
+    //创建文件列表节点
+    unsigned int i;
+    TiXmlElement* files = new TiXmlElement("files");
+    for (i = 0; i < DesFilesList->DesPath.GetCount(); i++) {
+        TiXmlElement* file = new TiXmlElement("file");
+        file->SetAttribute("md5", DesFilesList->md5[i].mb_str());
+        file->SetAttribute("size", DesFilesList->size[i]);
+        file->LinkEndChild(new TiXmlText(DesFilesList->DesPath[i].mb_str()));
+        files->LinkEndChild(file);
+    }
+    root->LinkEndChild(files);
+
+    doc->SaveFile();
+
+    return true;
+}
 
 
