@@ -105,7 +105,7 @@ FrameConfig::FrameConfig( wxWindow* parent, wxWindowID id, const wxString& title
 	
 	// Grid
 	m_gridMapping->CreateGrid( 0, 3 );
-	m_gridMapping->EnableEditing( false );
+	m_gridMapping->EnableEditing( true );
 	m_gridMapping->EnableGridLines( true );
 	m_gridMapping->EnableDragGridSize( false );
 	m_gridMapping->SetMargins( 0, 0 );
@@ -114,6 +114,7 @@ FrameConfig::FrameConfig( wxWindow* parent, wxWindowID id, const wxString& title
 	m_gridMapping->SetColSize( 0, 148 );
 	m_gridMapping->SetColSize( 1, 169 );
 	m_gridMapping->SetColSize( 2, 80 );
+	m_gridMapping->AutoSizeColumns();
 	m_gridMapping->EnableDragColMove( false );
 	m_gridMapping->EnableDragColSize( true );
 	m_gridMapping->SetColLabelSize( 30 );
@@ -147,12 +148,12 @@ FrameConfig::FrameConfig( wxWindow* parent, wxWindowID id, const wxString& title
 	m_buttonDelete = new wxButton( this, wxID_CHECK, wxT("删除"), wxDefaultPosition, wxDefaultSize, 0 );
 	gSizer2->Add( m_buttonDelete, 0, wxALL, 5 );
 	
-	m_buttonSave = new wxButton( this, wxID_SAVE, wxT("更新并保存"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_buttonSave->Enable( false );
+	m_buttonCheckUpdate = new wxButton( this, wxID_SAVE, wxT("检查更新"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_buttonCheckUpdate->Enable( false );
 	
-	gSizer2->Add( m_buttonSave, 0, wxALL, 5 );
+	gSizer2->Add( m_buttonCheckUpdate, 0, wxALL, 5 );
 	
-	m_buttonRelease = new wxButton( this, wxID_RELEASE, wxT("发布"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_buttonRelease = new wxButton( this, wxID_RELEASE, wxT("保存并发布"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_buttonRelease->Enable( false );
 	
 	gSizer2->Add( m_buttonRelease, 0, wxALL, 5 );
@@ -166,19 +167,23 @@ FrameConfig::FrameConfig( wxWindow* parent, wxWindowID id, const wxString& title
 	m_statusBar = this->CreateStatusBar( 1, wxST_SIZEGRIP, wxID_ANY );
 	
 	// Connect Events
+	m_textCtrlProjName->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( FrameConfig::OnTextChange ), NULL, this );
+	m_gridMapping->Connect( wxEVT_GRID_CELL_CHANGE, wxGridEventHandler( FrameConfig::OnGridCellChange ), NULL, this );
 	m_buttonAddFile->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnAddFile ), NULL, this );
 	m_buttonAddDir->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnAddDir ), NULL, this );
 	m_buttonDelete->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnCheck ), NULL, this );
-	m_buttonSave->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnSave ), NULL, this );
+	m_buttonCheckUpdate->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnCheckUpdate ), NULL, this );
 	m_buttonRelease->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnRelease ), NULL, this );
 }
 
 FrameConfig::~FrameConfig()
 {
 	// Disconnect Events
+	m_textCtrlProjName->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( FrameConfig::OnTextChange ), NULL, this );
+	m_gridMapping->Disconnect( wxEVT_GRID_CELL_CHANGE, wxGridEventHandler( FrameConfig::OnGridCellChange ), NULL, this );
 	m_buttonAddFile->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnAddFile ), NULL, this );
 	m_buttonAddDir->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnAddDir ), NULL, this );
 	m_buttonDelete->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnCheck ), NULL, this );
-	m_buttonSave->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnSave ), NULL, this );
+	m_buttonCheckUpdate->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnCheckUpdate ), NULL, this );
 	m_buttonRelease->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnRelease ), NULL, this );
 }

@@ -10,6 +10,9 @@
 #ifndef RMUPDATEMANAGERAPP_H
 #define RMUPDATEMANAGERAPP_H
 
+#define DATESTAMP_ZERO 978278400
+//该时间戳是2001年1月1日0时0分0秒
+
 #include <wx/app.h>
 #include <wx/dirdlg.h>
 #include <wx/msgdlg.h>
@@ -25,18 +28,23 @@ struct mapping_files_t{
 };
 
 struct fileinfo_t{
-    wxArrayString path;
+    wxArrayString SrcPath;  //这个是绝对路径
+    wxArrayString DesPath;  //这个是相对于游戏目录的路径
     wxArrayString md5;
+    WX_DEFINE_ARRAY_SIZE_T(unsigned long, size_a);
+    size_a size;
 };
 
 struct proj_info_t{
     wxString name;
+    wxString ProjPath;
     mapping_dirs_t MappingDirs;
     mapping_files_t MappingFiles;
     long AbsVer;
     long SubAbsVer;
     long UpdateTime;
 };
+
 
 class RMupdateManagerApp : public wxApp
 {
@@ -45,15 +53,17 @@ class RMupdateManagerApp : public wxApp
         virtual bool OnInit();
 
         proj_info_t GetProjInfo();
-        bool SaveProjInfo(proj_info_t proj);
+        bool SetProjInfo(proj_info_t proj);
         bool OpenProj();
         bool CreateProj();
         bool LoadProjConfig(const char* path);
+        bool SaveProject();
 
     private:
         proj_info_t ProjInfo;
 
         bool CreateProjConfig(const char* path);
+        long GetDateStamp();
 
 
 };
