@@ -104,7 +104,7 @@ FrameConfig::FrameConfig( wxWindow* parent, wxWindowID id, const wxString& title
 	m_gridMapping = new wxGrid( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
 	
 	// Grid
-	m_gridMapping->CreateGrid( 1, 3 );
+	m_gridMapping->CreateGrid( 0, 3 );
 	m_gridMapping->EnableEditing( false );
 	m_gridMapping->EnableGridLines( true );
 	m_gridMapping->EnableDragGridSize( false );
@@ -148,9 +148,13 @@ FrameConfig::FrameConfig( wxWindow* parent, wxWindowID id, const wxString& title
 	gSizer2->Add( m_buttonDelete, 0, wxALL, 5 );
 	
 	m_buttonSave = new wxButton( this, wxID_SAVE, wxT("更新并保存"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_buttonSave->Enable( false );
+	
 	gSizer2->Add( m_buttonSave, 0, wxALL, 5 );
 	
 	m_buttonRelease = new wxButton( this, wxID_RELEASE, wxT("发布"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_buttonRelease->Enable( false );
+	
 	gSizer2->Add( m_buttonRelease, 0, wxALL, 5 );
 	
 	bSizer9->Add( gSizer2, 1, wxEXPAND, 5 );

@@ -51,8 +51,44 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 RMupdateManagerConfig::RMupdateManagerConfig(wxFrame *frame)
     : FrameConfig(frame)
 {
+    //设置界面
+    this->m_gridMapping->SetColLabelValue(0, _T("源"));
+    this->m_gridMapping->SetColLabelValue(1, _T("目的"));
+    this->m_gridMapping->SetColLabelValue(2, _T("类型"));
+
+    //载入工程配置
     proj_info_t proj = wxGetApp().GetProjInfo();
     this->m_textCtrlProjName->SetValue(proj.name);
+
+    //载入映射列表
+    unsigned int i, j = 0;
+    wxArrayString SrcPath;
+    wxArrayString DesPath;
+
+    proj = wxGetApp().GetProjInfo();
+
+    //目录
+    SrcPath = proj.MappingDirs.SrcPath;
+    DesPath = proj.MappingDirs.DesPath;
+    this->m_gridMapping->InsertRows(0, SrcPath.Count());
+    for (i = 0; i < SrcPath.Count(); i++) {
+        this->m_gridMapping->SetCellValue(j, 0, SrcPath[i]);
+        this->m_gridMapping->SetCellValue(j, 1, DesPath[i]);
+        this->m_gridMapping->SetCellValue(j, 2, wxString("目录", wxConvUTF8));
+        j++;
+    }
+
+    //文件
+    SrcPath = proj.MappingFiles.SrcPath;
+    DesPath = proj.MappingFiles.DesPath;
+    this->m_gridMapping->InsertRows(j, SrcPath.Count());
+    for (i = 0; i < SrcPath.Count(); i++) {
+        this->m_gridMapping->SetCellValue(j, 0, SrcPath[i]);
+        this->m_gridMapping->SetCellValue(j, 1, DesPath[i]);
+        this->m_gridMapping->SetCellValue(j, 2, wxString("文件", wxConvUTF8));
+        j++;
+    }
+
 }
 
 RMupdateManagerConfig::~RMupdateManagerConfig()
@@ -81,6 +117,55 @@ void RMupdateManagerConfig::SetStatus(wxString& info)
     this->m_statusBar->SetStatusText(info + wxString(timestr, wxConvUTF8));
 
 }
+
+void RMupdateManagerConfig::OnAddDir(wxCommandEvent& event)
+{
+    wxString SrcPath;
+    wxString DesPath;
+
+    //选择源路径
+    wxDirDialog dlg(NULL);
+    if (dlg.ShowModal() != wxID_OK) {
+        return;
+    }
+    else {
+        SrcPath = dlg.GetPath();
+    }
+
+    //选择目标路径
+    wxDirDialog dlg1(NULL);
+    if (dlg1.ShowModal() != wxID_OK) {
+        return;
+    }
+    else {
+        DesPath = dlg1.GetPath();
+    }
+
+    //添加到列表
+    int cnt = this->m_gridMapping->GetNumberRows();
+    this->m_gridMapping->InsertRows(cnt, 1);
+    this->m_gridMapping->SetCellValue(cnt, 0, SrcPath);
+    this->m_gridMapping->SetCellValue(cnt, 1, DesPath);
+    this->m_gridMapping->SetCellValue(cnt, 2, _T("目录"));
+
+}
+
+void RMupdateManagerConfig::OnAddFile(wxCommandEvent& event)
+{
+}
+
+void RMupdateManagerConfig::OnCheck(wxCommandEvent& event)
+{
+}
+
+void RMupdateManagerConfig::OnSave(wxCommandEvent& event)
+{
+}
+
+void RMupdateManagerConfig::OnRelease(wxCommandEvent& event)
+{
+}
+
 
 
 
