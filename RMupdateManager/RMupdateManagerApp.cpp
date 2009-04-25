@@ -79,8 +79,19 @@ bool RMupdateManagerApp::LoadProjConfig(const char* path)
     if (!tmp) return false;
     this->ProjInfo.UpdateTime = atol(tmp);
 
+    #if defined(__WXMSW__)
+    wxChar slash = wxChar('\\');
+    #else
+    wxChar slash = wxChar('/');
+    #endif
+    ProjInfo.ProjPath = wxString(path, wxConvUTF8).Before(slash);
 
-    //载入映射目录和文件表
+    //载入映射目录和文件表，当然先删除现有的列表
+    this->ProjInfo.MappingDirs.SrcPath.Clear();
+    this->ProjInfo.MappingDirs.DesPath.Clear();
+    this->ProjInfo.MappingFiles.SrcPath.Clear();
+    this->ProjInfo.MappingFiles.DesPath.Clear();
+
     int i = 0;
     TiXmlHandle DomDirs = root.ChildElement("MappingDirs", 0);
     TiXmlHandle DomDir = DomDirs.ChildElement("dir", 0);
@@ -102,9 +113,14 @@ bool RMupdateManagerApp::LoadProjConfig(const char* path)
     return true;
 }
 
-proj_info_t RMupdateManagerApp::GetProjInfo()
+/*proj_info_t RMupdateManagerApp::GetProjInfo()
 {
     return this->ProjInfo;
+}*/
+
+proj_info_t RMupdateManagerApp::GetProjInfo()
+{
+    return ProjInfo;
 }
 
 bool RMupdateManagerApp::CreateProj()
@@ -208,13 +224,100 @@ bool RMupdateManagerApp::CreateProjConfig(const char* path)
     //保存工程属性
     proj_info_t proj;
     proj.name = wxString("未命名", wxConvUTF8);
-    this->SaveProjInfo(proj);
+    this->SetProjInfo(proj);
 
     return true;
 }
 
-bool RMupdateManagerApp::SaveProjInfo(proj_info_t proj)
+bool RMupdateManagerApp::SetProjInfo(proj_info_t proj)
 {
     ProjInfo = proj;
     return true;
+}
+
+bool RMupdateManagerApp::SaveProject()
+{
+    //设置版本号，以及更新时间戳
+    long DateStamp = GetDateStamp();
+    if (ProjInfo.AbsVer == DateStamp) {
+        ProjInfo.SubAbsVer++;
+    }
+    else {
+        ProjInfo.AbsVer = DateStamp;
+    }
+    ProjInfo.UpdateTime = time(NULL);
+
+    //创建XML文档
+    try {
+        char ConfigPath[1024];
+        char tmp[1024];
+        strcpy(ConfigPath, ProjInfo.ProjPath.mb_str());
+        strcat(ConfigPath, "/config.xml");
+
+        TiXmlDocument* doc = new TiXmlDocument(ConfigPath);
+
+        TiXmlElement* root = new TiXmlElement("project");
+        doc->LinkEndChild(root);
+
+        TiXmlElement* name = new TiXmlElement("name");
+        name->LinkEndChild(new TiXmlText(ProjInfo.name.mb_str()));
+        root->LinkEndChild(name);
+
+        TiXmlElement* AbsVer = new TiXmlElement("AbsVer");
+        sprintf(tmp, "%ld", ProjInfo.AbsVer);
+        AbsVer->LinkEndChild(new TiXmlText(tmp));
+        root->LinkEndChild(AbsVer);
+
+        TiXmlElement* SubAbsVer = new TiXmlElement("SubAbsVer");
+        sprintf(tmp, "%ld", ProjInfo.SubAbsVer);
+        SubAbsVer->LinkEndChild(new TiXmlText(tmp));
+        root->LinkEndChild(SubAbsVer);
+
+        TiXmlElement* UpdateTime = new TiXmlElement("UpdateTime");
+        sprintf(tmp, "%ld", ProjInfo.UpdateTime);
+        UpdateTime->LinkEndChild(new TiXmlText(tmp));
+        root->LinkEndChild(UpdateTime);
+
+        TiXmlElement* MappingDirs = new TiXmlElement("MappingDirs");
+        root->LinkEndChild(MappingDirs);
+        TiXmlElement* MappingFiles = new TiXmlElement("MappingFiles");
+        root->LinkEndChild(MappingFiles);
+
+        //创建映射条目的节点
+        unsigned long i;
+        for (i = 0; i < ProjInfo.MappingDirs.SrcPath.GetCount(); i++) {
+            TiXmlElement* dir = new TiXmlElement("dir");
+            TiXmlElement* SrcPath = new TiXmlElement("SrcPath");
+            TiXmlElement* DesPath = new TiXmlElement("DesPath");
+            SrcPath->LinkEndChild(new TiXmlText(ProjInfo.MappingDirs.SrcPath[i].mb_str()));
+            DesPath->LinkEndChild(new TiXmlText(ProjInfo.MappingDirs.DesPath[i].mb_str()));
+            dir->LinkEndChild(SrcPath);
+            dir->LinkEndChild(DesPath);
+            MappingDirs->LinkEndChild(dir);
+        }
+        for (i = 0; i < ProjInfo.MappingFiles.SrcPath.GetCount(); i++) {
+            TiXmlElement* file = new TiXmlElement("file");
+            TiXmlElement* SrcPath = new TiXmlElement("SrcPath");
+            TiXmlElement* DesPath = new TiXmlElement("DesPath");
+            SrcPath->LinkEndChild(new TiXmlText(ProjInfo.MappingFiles.SrcPath[i].mb_str()));
+            DesPath->LinkEndChild(new TiXmlText(ProjInfo.MappingFiles.DesPath[i].mb_str()));
+            file->LinkEndChild(SrcPath);
+            file->LinkEndChild(DesPath);
+            MappingFiles->LinkEndChild(file);
+        }
+
+        doc->SaveFile();
+    }
+    catch (int e) {
+        wxMessageDialog(NULL, _T("保存工程失败"), _T("错误")).ShowModal();
+        return false;
+    }
+
+    return true;
+}
+
+long RMupdateManagerApp::GetDateStamp()
+{
+    long SplitStamp = time(NULL) - DATESTAMP_ZERO;
+    return SplitStamp / 86400;
 }

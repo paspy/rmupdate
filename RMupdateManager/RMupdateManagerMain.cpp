@@ -100,6 +100,7 @@ void RMupdateManagerFrame::OnOpenProj( wxCommandEvent& event )
                         proj.MappingFiles.SrcPath.Count());
         info += _T("最后更新时间：") + wxString(timestr, wxConvUTF8);
         info = _T("工程名：") + proj.name + wxT("\n") + info;
+        info = _T("工程配置：") + proj.ProjPath + wxT("\n") + info;
 
         m_staticTextProjInfo->SetLabel(info);
     }

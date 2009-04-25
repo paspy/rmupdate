@@ -72,15 +72,17 @@ class FrameConfig : public wxFrame
 		wxButton* m_buttonAddFile;
 		wxButton* m_buttonAddDir;
 		wxButton* m_buttonDelete;
-		wxButton* m_buttonSave;
+		wxButton* m_buttonCheckUpdate;
 		wxButton* m_buttonRelease;
 		wxStatusBar* m_statusBar;
 		
 		// Virtual event handlers, overide them in your derived class
+		virtual void OnTextChange( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnGridCellChange( wxGridEvent& event ){ event.Skip(); }
 		virtual void OnAddFile( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnAddDir( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnCheck( wxCommandEvent& event ){ event.Skip(); }
-		virtual void OnSave( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnCheckUpdate( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnRelease( wxCommandEvent& event ){ event.Skip(); }
 		
 	

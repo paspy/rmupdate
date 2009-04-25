@@ -10,10 +10,9 @@
 #ifndef RMUPDATEMANAGERCONFIG_H
 #define RMUPDATEMANAGERCONFIG_H
 
-
+#include <wx/filedlg.h>
 
 #include "RMupdateManagerApp.h"
-
 
 #include "frameUI.h"
 
@@ -27,11 +26,19 @@ class RMupdateManagerConfig: public FrameConfig
         virtual void OnQuit(wxCommandEvent& event);
 		virtual void OnAddFile( wxCommandEvent& event );
 		virtual void OnAddDir( wxCommandEvent& event );
-		virtual void OnCheck( wxCommandEvent& event );
-		virtual void OnSave( wxCommandEvent& event );
+		virtual void OnCheckUpdate( wxCommandEvent& event );
 		virtual void OnRelease( wxCommandEvent& event );
+		virtual void OnTextChange( wxCommandEvent& event );
 
-		void SetStatus(wxString& info);
+		void SetStatus(wxString info);
+		bool LoadFilesList();
+		long CompareFilesList(fileinfo_t*& src, fileinfo_t*& des);    //返回不同的文件个数
+		bool LoadFolderFiles2List(fileinfo_t*& list, wxString SrcPath, wxString DesPath);
+		bool LoadFile2List(fileinfo_t*& list, wxString SrcPath, wxString DesPath);
+
+		bool MappingChanged;
+		fileinfo_t* SrcFilesList;
+		fileinfo_t* DesFilesList;
 };
 
 #endif // RMUPDATEMANAGERCONFIG_H
