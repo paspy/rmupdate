@@ -81,7 +81,7 @@ class FrameConfig : public wxFrame
 		virtual void OnGridCellChange( wxGridEvent& event ){ event.Skip(); }
 		virtual void OnAddFile( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnAddDir( wxCommandEvent& event ){ event.Skip(); }
-		virtual void OnCheck( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnDelete( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnCheckUpdate( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnRelease( wxCommandEvent& event ){ event.Skip(); }
 		
