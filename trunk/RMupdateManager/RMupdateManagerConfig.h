@@ -29,6 +29,7 @@ class RMupdateManagerConfig: public FrameConfig
 		virtual void OnCheckUpdate( wxCommandEvent& event );
 		virtual void OnRelease( wxCommandEvent& event );
 		virtual void OnTextChange( wxCommandEvent& event );
+		virtual void OnDelete( wxCommandEvent& event );
 
 		void SetStatus(wxString info);
 		bool LoadFilesList();
@@ -36,6 +37,7 @@ class RMupdateManagerConfig: public FrameConfig
 		bool LoadFolderFiles2List(fileinfo_t*& list, wxString SrcPath, wxString DesPath);
 		bool LoadFile2List(fileinfo_t*& list, wxString SrcPath, wxString DesPath);
 		bool SaveFilesList();
+		bool UpdateUpdateFile();
 
 		bool MappingChanged;
 		fileinfo_t* SrcFilesList;

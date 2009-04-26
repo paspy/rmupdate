@@ -145,10 +145,10 @@ FrameConfig::FrameConfig( wxWindow* parent, wxWindowID id, const wxString& title
 	m_buttonAddDir = new wxButton( this, wxID_ADDDIR, wxT("增加目录"), wxDefaultPosition, wxDefaultSize, 0 );
 	gSizer2->Add( m_buttonAddDir, 0, wxALL, 5 );
 	
-	m_buttonDelete = new wxButton( this, wxID_CHECK, wxT("删除"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_buttonDelete = new wxButton( this, wxID_DELETE, wxT("删除"), wxDefaultPosition, wxDefaultSize, 0 );
 	gSizer2->Add( m_buttonDelete, 0, wxALL, 5 );
 	
-	m_buttonCheckUpdate = new wxButton( this, wxID_SAVE, wxT("检查更新"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_buttonCheckUpdate = new wxButton( this, wxID_CHECK, wxT("检查更新"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_buttonCheckUpdate->Enable( false );
 	
 	gSizer2->Add( m_buttonCheckUpdate, 0, wxALL, 5 );
@@ -171,7 +171,7 @@ FrameConfig::FrameConfig( wxWindow* parent, wxWindowID id, const wxString& title
 	m_gridMapping->Connect( wxEVT_GRID_CELL_CHANGE, wxGridEventHandler( FrameConfig::OnGridCellChange ), NULL, this );
 	m_buttonAddFile->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnAddFile ), NULL, this );
 	m_buttonAddDir->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnAddDir ), NULL, this );
-	m_buttonDelete->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnCheck ), NULL, this );
+	m_buttonDelete->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnDelete ), NULL, this );
 	m_buttonCheckUpdate->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnCheckUpdate ), NULL, this );
 	m_buttonRelease->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnRelease ), NULL, this );
 }
@@ -183,7 +183,7 @@ FrameConfig::~FrameConfig()
 	m_gridMapping->Disconnect( wxEVT_GRID_CELL_CHANGE, wxGridEventHandler( FrameConfig::OnGridCellChange ), NULL, this );
 	m_buttonAddFile->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnAddFile ), NULL, this );
 	m_buttonAddDir->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnAddDir ), NULL, this );
-	m_buttonDelete->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnCheck ), NULL, this );
+	m_buttonDelete->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnDelete ), NULL, this );
 	m_buttonCheckUpdate->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnCheckUpdate ), NULL, this );
 	m_buttonRelease->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnRelease ), NULL, this );
 }

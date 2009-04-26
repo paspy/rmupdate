@@ -148,8 +148,6 @@ void RMupdateManagerConfig::OnAddDir(wxCommandEvent& event)
         SrcPath = dlg.GetPath();
     }
 
-    //选择目标路径
-
     //添加到列表
     int cnt = this->m_gridMapping->GetNumberRows();
     this->m_gridMapping->InsertRows(cnt, 1);
@@ -176,17 +174,6 @@ void RMupdateManagerConfig::OnAddFile(wxCommandEvent& event)
     else {
         SrcPath = dlg.GetPath();
     }
-
-    //选择目标路径
-    /*
-    wxFileDialog dlg1(NULL);
-    if (dlg.ShowModal() != wxID_OK) {
-        return;
-    }
-    else {
-        DesPath = dlg.GetPath();
-    }
-    */
 
     //添加到列表
     int cnt = this->m_gridMapping->GetNumberRows();
@@ -249,6 +236,7 @@ void RMupdateManagerConfig::OnRelease(wxCommandEvent& event)
     wxGetApp().SetProjInfo(proj);
     wxGetApp().SaveProject();
     SaveFilesList();
+    UpdateUpdateFile();
 }
 
 void RMupdateManagerConfig::OnTextChange(wxCommandEvent& event)
@@ -265,6 +253,7 @@ bool RMupdateManagerConfig::LoadFilesList()
     fileinfo_t* list;
     int i;
 
+    //载入目的文件表
     list = this->DesFilesList;
     list->DesPath.Clear();
     list->SrcPath.Clear();
@@ -281,6 +270,23 @@ bool RMupdateManagerConfig::LoadFilesList()
         else {
             this->LoadFile2List(list, this->m_gridMapping->GetCellValue(i, 0), this->m_gridMapping->GetCellValue(i, 1));
         }
+    }
+
+    //载入源文件表
+    list = this->SrcFilesList;
+    list->DesPath.Clear();
+    list->SrcPath.Clear();
+    list->md5.Clear();
+    list->size.Clear();
+
+    proj_info_t proj = wxGetApp().GetProjInfo();
+    unsigned int j;
+
+    for (j = 0; j < proj.MappingDirs.SrcPath.Count(); j++) {
+        this->LoadFolderFiles2List(list, proj.MappingDirs.SrcPath[j], proj.MappingDirs.DesPath[j]);
+    }
+    for (j = 0; j < proj.MappingFiles.SrcPath.Count(); j++) {
+        this->LoadFile2List(list, proj.MappingFiles.SrcPath[j], proj.MappingFiles.DesPath[j]);
     }
 
     SetStatus(wxString("更新成功", wxConvUTF8));
@@ -357,9 +363,9 @@ long RMupdateManagerConfig::CompareFilesList(fileinfo_t*& src, fileinfo_t*& des)
         wxArrayString md5;
         char_a exist;
     } ExistFlag;*/
-    unsigned int UnflagSrcNum = src->md5.Count();
-    unsigned int UnflagDesNum = des->md5.Count();
-    unsigned int ModifiedNum = 0;
+    long UnflagSrcNum = src->md5.Count();
+    long UnflagDesNum = des->md5.Count();
+    long ModifiedNum = 0;
 
     //为ExistFlag载入源列表
     unsigned int i;
@@ -372,7 +378,7 @@ long RMupdateManagerConfig::CompareFilesList(fileinfo_t*& src, fileinfo_t*& des)
     for (i = 0; i < des->md5.Count(); i++) {
         unsigned int k;
         for (k = 0; k < src->DesPath.GetCount(); k++) {
-            if (src->DesPath[k] == des->DesPath[k]) break;
+            if (src->DesPath[k] == des->DesPath[i]) break;
         }
         if (k != src->DesPath.GetCount()) {
             //找到了相对路径相同的文件
@@ -433,4 +439,30 @@ bool RMupdateManagerConfig::SaveFilesList()
     return true;
 }
 
+bool RMupdateManagerConfig::UpdateUpdateFile()
+{
+    proj_info_t proj = wxGetApp().GetProjInfo();
+    FILE* fp;
+    char buffer[2000];
+    char path[1024];
+    strcpy(path, proj.ProjPath.mb_str());
+    strcat(path, "/update.xml");
 
+    fp = fopen(path, "w");
+    if (!fp) {
+        wxMessageDialog(NULL, _T("无法写入更新文件"), _T("错误"));
+        return false;
+    }
+
+    sprintf(buffer, "<update><AbsVer>%ld</AbsVer><SubAbsVer>%ld</SubAbsVer><UpdateTime>%ld</UpdateTime></update>", proj.AbsVer, proj.SubAbsVer, proj.UpdateTime);
+    fwrite(buffer, strlen(buffer), 1, fp);
+    fclose(fp);
+
+    return true;
+}
+
+void RMupdateManagerConfig::OnDelete(wxCommandEvent& event)
+{
+    wxArrayInt rows = m_gridMapping->GetSelectedRows();
+    m_gridMapping->DeleteRows(rows.Index(0), 1, true);
+}
