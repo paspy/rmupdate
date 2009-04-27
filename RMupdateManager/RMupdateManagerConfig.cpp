@@ -21,6 +21,10 @@
 #include "lib/md5.h"
 #include "ticpp/tinyxml.h"
 
+#ifdef RMUPDATE_ENCRYPT_FILE
+#include "lib/file_encrypt.h"
+#endif
+
 DECLARE_APP(RMupdateManagerApp);
 
 //helper functions
@@ -502,11 +506,18 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
         }
 
         //加密文件
-
-        //写入文件
+    #ifdef RMUPDATE_ENCRYPT_FILE
+        char tmppath[1024];
+        strcpy(tmppath, list->DesPath[i].mb_str());
+        strcpy(FilePath, DirPath);
+        strcat(FilePath, encrypt_file_path(tmppath));
+        strcat(FilePath, ".dat");
+    #else
         strcpy(FilePath, DirPath);
         strcat(FilePath, list->DesPath[i].mb_str());
+    #endif
 
+        //写入文件
         fp = fopen(FilePath, "wb");
         #if defined(__UNIX__)
         if (!fp) {
