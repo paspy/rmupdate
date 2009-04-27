@@ -38,6 +38,8 @@ class RMupdateManagerConfig: public FrameConfig
 		bool LoadFile2List(fileinfo_t*& list, wxString SrcPath, wxString DesPath);
 		bool SaveFilesList();
 		bool UpdateUpdateFile();
+		bool UpdateResourceFiles();
+		bool UpdateResourceFile();
 
 		bool MappingChanged;
 		fileinfo_t* SrcFilesList;
