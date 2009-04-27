@@ -507,11 +507,16 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
 
         //加密文件
     #ifdef RMUPDATE_ENCRYPT_FILE
+        // 加密文件名
         char tmppath[1024];
         strcpy(tmppath, list->DesPath[i].mb_str());
         strcpy(FilePath, DirPath);
         strcat(FilePath, encrypt_file_path(tmppath));
         strcat(FilePath, ".dat");
+
+        // 加密文件内容。。！这里的内存没有处理好，按照加密函数中的定义，应该删除传入的buffer，而加密内容的指针是encrypt_file_content的返回值
+        long tmplong;
+        encrypt_file_content(buffer, buffer_size, tmplong);
     #else
         strcpy(FilePath, DirPath);
         strcat(FilePath, list->DesPath[i].mb_str());
