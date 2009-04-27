@@ -149,13 +149,9 @@ FrameConfig::FrameConfig( wxWindow* parent, wxWindowID id, const wxString& title
 	gSizer2->Add( m_buttonDelete, 0, wxALL, 5 );
 	
 	m_buttonCheckUpdate = new wxButton( this, wxID_CHECK, wxT("检查更新"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_buttonCheckUpdate->Enable( false );
-	
 	gSizer2->Add( m_buttonCheckUpdate, 0, wxALL, 5 );
 	
 	m_buttonRelease = new wxButton( this, wxID_RELEASE, wxT("保存并发布"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_buttonRelease->Enable( false );
-	
 	gSizer2->Add( m_buttonRelease, 0, wxALL, 5 );
 	
 	bSizer9->Add( gSizer2, 1, wxEXPAND, 5 );

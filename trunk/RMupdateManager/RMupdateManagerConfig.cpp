@@ -17,6 +17,7 @@
 
 #include "RMupdateManagerConfig.h"
 #include <wx/dir.h>
+#include <wx/file.h>
 #include "lib/md5.h"
 #include "ticpp/tinyxml.h"
 
@@ -207,13 +208,15 @@ void RMupdateManagerConfig::OnCheckUpdate(wxCommandEvent& event)
     else {
         SetStatus(_T("没有更新"));
     }
+
+    //m_buttonCheckUpdate->Enable(false);
 }
 
 void RMupdateManagerConfig::OnRelease(wxCommandEvent& event)
 {
     proj_info_t proj = wxGetApp().GetProjInfo();
 
-    m_buttonRelease->Enable(false);
+    //m_buttonRelease->Enable(false);
 
     proj.MappingDirs.SrcPath.Clear();
     proj.MappingDirs.DesPath.Clear();
@@ -237,6 +240,7 @@ void RMupdateManagerConfig::OnRelease(wxCommandEvent& event)
     wxGetApp().SaveProject();
     SaveFilesList();
     UpdateUpdateFile();
+    UpdateResourceFiles();
 }
 
 void RMupdateManagerConfig::OnTextChange(wxCommandEvent& event)
@@ -466,3 +470,75 @@ void RMupdateManagerConfig::OnDelete(wxCommandEvent& event)
     wxArrayInt rows = m_gridMapping->GetSelectedRows();
     m_gridMapping->DeleteRows(rows.Index(0), 1, true);
 }
+
+
+bool RMupdateManagerConfig::UpdateResourceFiles()
+{
+    char DirPath[1024];
+    char FilePath[1024];
+    void* buffer;
+    long buffer_size;
+    FILE* fp;
+    wxFile wxFp;
+    proj_info_t proj = wxGetApp().GetProjInfo();
+    fileinfo_t* list = DesFilesList;
+
+    strcpy(DirPath, proj.ProjPath.mb_str());
+    strcat(DirPath, "/release/");
+
+    unsigned int i = 0;
+    for (i = 0; i < list->SrcPath.Count(); i++) {
+        //读取文件
+        strcpy(FilePath, list->SrcPath[i].mb_str());
+        fp = fopen(FilePath, "rb");
+        if (fp) {
+            fseek(fp, 0, SEEK_END);
+            buffer_size = ftell(fp);
+            fseek(fp, 0, SEEK_SET);
+
+            buffer = malloc(buffer_size);
+            fread(buffer, buffer_size, 1, fp);
+            fclose(fp);
+        }
+
+        //加密文件
+
+        //写入文件
+        strcpy(FilePath, DirPath);
+        strcat(FilePath, list->DesPath[i].mb_str());
+
+        fp = fopen(FilePath, "wb");
+        #if defined(__UNIX__)
+        if (!fp) {
+            char CDirPath[1024];
+            char cmd[1024];
+
+            strcpy(CDirPath, FilePath);
+            CDirPath[strrchr(FilePath, '/') - FilePath] = 0;
+            sprintf(cmd, "mkdir -p %s", CDirPath);
+            printf("错误：创建文件失败，试图创建目录：%s\n", CDirPath);
+            system(cmd);
+            fp = fopen(FilePath, "wb");
+        }
+        #endif
+
+        if (fp) {
+            fwrite(buffer, buffer_size, 1, fp);
+            fclose(fp);
+        }
+        else {
+            printf("错误：无法以写模式打开 %s\n", FilePath);
+        }
+
+        free(buffer);
+
+    }
+
+    return true;
+}
+
+bool RMupdateManagerConfig::UpdateResourceFile()
+{
+    return true;
+}
+
