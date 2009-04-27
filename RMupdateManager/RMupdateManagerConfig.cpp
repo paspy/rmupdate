@@ -444,6 +444,35 @@ bool RMupdateManagerConfig::SaveFilesList()
 
     doc->SaveFile();
 
+    #ifdef RMUPDATE_ENCRYPT_FILE
+    //生成加密的更新文件列表
+    FILE* fp;
+    void* buffer;
+    long buffer_size;
+
+    //读取原文件
+    fp = fopen(path, "rb");
+    fseek(fp, 0, SEEK_END);
+    buffer_size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    buffer = malloc(buffer_size);
+    fread(buffer, buffer_size, 1, fp);
+    fclose(fp);
+
+    //加密然后写入
+    strcat(path, ".dat");
+    fp = fopen(path, "wb");
+    if (!fp) {
+        printf("错误：无法以写模式打开文件 %s\n", path);
+    }
+    else {
+        long tmplong;
+        encrypt_file_content(buffer, buffer_size, tmplong);
+        fwrite(buffer, buffer_size, 1, fp);
+        fclose(fp);
+    }
+    #endif
+
     return true;
 }
 
@@ -552,9 +581,3 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
 
     return true;
 }
-
-bool RMupdateManagerConfig::UpdateResourceFile()
-{
-    return true;
-}
-
