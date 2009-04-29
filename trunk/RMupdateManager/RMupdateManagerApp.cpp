@@ -225,9 +225,13 @@ bool RMupdateManagerApp::CreateProjConfig(const char* path)
         return false;
     }
 
+
     //保存工程属性
     proj_info_t proj;
     proj.name = wxString("未命名", wxConvUTF8);
+    proj.ProjPath = wxString(path, wxConvUTF8);
+    proj.version = wxString("默认版本", wxConvUTF8);
+    proj.AbsVer = proj.SubAbsVer = 0;
     this->SetProjInfo(proj);
 
     return true;

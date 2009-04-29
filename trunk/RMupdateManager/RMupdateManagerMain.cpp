@@ -75,7 +75,7 @@ void RMupdateManagerFrame::OnAbout(wxCommandEvent &event)
 
 void RMupdateManagerFrame::OnCreateProj( wxCommandEvent& event )
 {
-    if (wxGetApp().CreateProj());
+    if (wxGetApp().CreateProj()) RefreshProjInfo();
 }
 
 void RMupdateManagerFrame::OnOpenProj( wxCommandEvent& event )
@@ -83,26 +83,30 @@ void RMupdateManagerFrame::OnOpenProj( wxCommandEvent& event )
     if (wxGetApp().OpenProj()) {
         RMupdateManagerConfig* frameConfig = new RMupdateManagerConfig(0L);
         frameConfig->Show();
-
-        //在工程主窗口中显示工程信息
-        wxString info;
-        proj_info_t proj = wxGetApp().GetProjInfo();
-
-        struct tm *ttime;
-        char timestr[100];
-        ttime = localtime(&proj.UpdateTime);
-        strftime(timestr, 100, "%Y年%m月%d日 %H时%M分%S秒", ttime);
-
-        info.sprintf(_T("工程版本号：%ld.%ld\n映射目录数：%ld\n映射文件数：%ld\n"),
-                        proj.AbsVer,
-                        proj.SubAbsVer,
-                        proj.MappingDirs.SrcPath.Count(),
-                        proj.MappingFiles.SrcPath.Count());
-        info += _T("最后更新时间：") + wxString(timestr, wxConvUTF8);
-        info = _T("工程名：") + proj.name + wxT("\n") + info;
-        info = _T("工程配置：") + proj.ProjPath + wxT("\n") + info;
-        info = _T("发布版本：") + proj.version+ wxT("\n") + info;
-
-        m_staticTextProjInfo->SetLabel(info);
     }
+    RefreshProjInfo();
+}
+
+void RMupdateManagerFrame::RefreshProjInfo()
+{
+            //在工程主窗口中显示工程信息
+    wxString info;
+    proj_info_t proj = wxGetApp().GetProjInfo();
+
+    struct tm *ttime;
+    char timestr[100];
+    ttime = localtime(&proj.UpdateTime);
+    strftime(timestr, 100, "%Y年%m月%d日 %H时%M分%S秒", ttime);
+
+    info.sprintf(_T("工程版本号：%ld.%ld\n映射目录数：%ld\n映射文件数：%ld\n"),
+                    proj.AbsVer,
+                    proj.SubAbsVer,
+                    proj.MappingDirs.SrcPath.Count(),
+                    proj.MappingFiles.SrcPath.Count());
+    info += _T("最后更新时间：") + wxString(timestr, wxConvUTF8);
+    info = _T("工程名：") + proj.name + wxT("\n") + info;
+    info = _T("工程配置：") + proj.ProjPath + wxT("\n") + info;
+    info = _T("发布版本：") + proj.version+ wxT("\n") + info;
+
+    m_staticTextProjInfo->SetLabel(info);
 }
