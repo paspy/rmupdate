@@ -321,7 +321,7 @@ bool RMupdateManagerConfig::LoadFolderFiles2List(fileinfo_t*& list, wxString Src
 bool RMupdateManagerConfig::LoadFile2List(fileinfo_t*& list, wxString SrcPath, wxString DesPath)
 {
     char path[1024];
-    char md5[32];
+    char md5[33];
     FILE* fp;
     long size;
     void* buffer;
@@ -501,6 +501,7 @@ bool RMupdateManagerConfig::UpdateUpdateFile()
 void RMupdateManagerConfig::OnDelete(wxCommandEvent& event)
 {
     wxArrayInt rows = m_gridMapping->GetSelectedRows();
+    printf("wxArrayInt,row=%ud", rows.GetCount());
     m_gridMapping->DeleteRows(rows.Index(0), 1, true);
 }
 
