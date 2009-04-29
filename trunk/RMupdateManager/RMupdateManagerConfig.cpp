@@ -500,9 +500,36 @@ bool RMupdateManagerConfig::UpdateUpdateFile()
 
 void RMupdateManagerConfig::OnDelete(wxCommandEvent& event)
 {
+    size_t i;
+    proj_info_t proj = wxGetApp().GetProjInfo();
     wxArrayInt rows = m_gridMapping->GetSelectedRows();
-    printf("wxArrayInt,row=%ud", rows.GetCount());
-    m_gridMapping->DeleteRows(rows.Index(0), 1, true);
+
+    if (rows.GetCount() == 0) return;
+
+    wxString SrcPath = m_gridMapping->GetCellValue(rows[0], 0);
+    wxString DesPath = m_gridMapping->GetCellValue(rows[0], 1);
+
+    if (m_gridMapping->GetCellValue(rows[0], 2) == wxT("目录")){
+        for (i = 0; i < proj.MappingDirs.SrcPath.GetCount(); i++) {
+            if (proj.MappingDirs.SrcPath[i] == SrcPath && proj.MappingDirs.DesPath[i] == DesPath) {
+                proj.MappingDirs.SrcPath.RemoveAt(i);
+                proj.MappingDirs.DesPath.RemoveAt(i);
+                printf("delete dir at: %u\n", i);
+            }
+        }
+    }
+    else {
+        for (i = 0; i < proj.MappingFiles.SrcPath.GetCount(); i++) {
+            if (proj.MappingFiles.SrcPath[i] == SrcPath && proj.MappingFiles.DesPath[i] == DesPath) {
+                proj.MappingFiles.SrcPath.RemoveAt(i);
+                proj.MappingFiles.DesPath.RemoveAt(i);
+                printf("delete file at: %u\n", i);
+            }
+        }
+    }
+    wxGetApp().SetProjInfo(proj);
+
+    m_gridMapping->DeleteRows(rows[0], 1, true);
 }
 
 
