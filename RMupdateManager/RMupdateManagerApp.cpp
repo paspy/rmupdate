@@ -138,6 +138,13 @@ bool RMupdateManagerApp::CreateProj()
     fp = fopen(ConfigFile, "r");
     if (fp && wxMessageDialog(NULL, _T("该目录下似乎已经创建了一个工程，是否覆盖？"), _T("似乎已经存在工程"), wxYES | wxNO | wxICON_QUESTION).ShowModal() != wxID_YES) return false;
 
+    //for unix, create folder first
+#if defined(__UNIX__)
+    char cmd[1024];
+    sprintf(cmd, "mkdir -p %s/release/res", ConfigDir);
+    system(cmd);
+#endif
+
     if (!this->CreateProjConfig(ConfigDir)) return false;
 
     RMupdateManagerConfig* frameConfig = new RMupdateManagerConfig(0L);

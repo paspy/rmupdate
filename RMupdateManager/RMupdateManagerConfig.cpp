@@ -283,7 +283,7 @@ bool RMupdateManagerConfig::LoadFilesList()
         }
     }
 
-    //载入源文件表
+    //载入源（当前版本）文件表
     list = this->SrcFilesList;
     list->DesPath.Clear();
     list->SrcPath.Clear();
@@ -291,13 +291,41 @@ bool RMupdateManagerConfig::LoadFilesList()
     list->size.Clear();
 
     proj_info_t proj = wxGetApp().GetProjInfo();
-    unsigned int j;
 
-    for (j = 0; j < proj.MappingDirs.SrcPath.Count(); j++) {
-        this->LoadFolderFiles2List(list, proj.MappingDirs.SrcPath[j], proj.MappingDirs.DesPath[j]);
+    char SrcPath[1024];
+    char ProjPath[1024];
+    strcpy(ProjPath, proj.ProjPath.mb_str());
+    sprintf(SrcPath, "%s/release/%ld.%ld.xml", ProjPath, proj.AbsVer, proj.SubAbsVer);
+
+    TiXmlDocument doc(SrcPath);
+    if (!doc.LoadFile()) {
+        printf("错误：无法载入XML文件：%s\n", SrcPath);
+        return false;
     }
-    for (j = 0; j < proj.MappingFiles.SrcPath.Count(); j++) {
-        this->LoadFile2List(list, proj.MappingFiles.SrcPath[j], proj.MappingFiles.DesPath[j]);
+    #ifdef DEBUG
+    else {
+        printf("载入XML文件： %s\n", SrcPath);
+    }
+    #endif
+
+    i = 0;
+    TiXmlHandle hDoc(&doc);
+    TiXmlHandle hUpdate = hDoc.ChildElement("update", 0).ChildElement("files", 0);
+    TiXmlHandle DomFile = hUpdate.ChildElement("file", 0);
+
+    while (DomFile.ToElement()) {
+        list->DesPath.Add(wxString(DomFile.ToElement()->GetText(), wxConvUTF8));
+        list->SrcPath.Add(wxString(DomFile.ToElement()->Attribute("src"), wxConvUTF8));
+        list->md5.Add(wxString(DomFile.ToElement()->Attribute("md5"), wxConvUTF8));
+        const char* tsize = DomFile.ToElement()->Attribute("size");
+        if (tsize) {
+            list->size.Add(atol(tsize));
+        }
+        else {
+            list->size.Add(0);
+        }
+
+        DomFile = hUpdate.ChildElement("file", ++i);
     }
 
     SetStatus(wxString("更新成功", wxConvUTF8));
@@ -344,9 +372,8 @@ bool RMupdateManagerConfig::LoadFile2List(fileinfo_t*& list, wxString SrcPath, w
     #ifdef DEBUG
     char tmp[1024];
     strcpy(tmp, SrcPath.mb_str());
-    printf("计算哈希值：%s\n", tmp);
+    printf("计算哈希值：%s\t", tmp);
     strcpy(tmp, DesPath.mb_str());
-    printf("DesPath: %s\n", tmp);
     #endif
 
     fseek(fp, 0, SEEK_END);
@@ -356,6 +383,7 @@ bool RMupdateManagerConfig::LoadFile2List(fileinfo_t*& list, wxString SrcPath, w
     fread(buffer, size, 1, fp);
     fclose(fp);
     md5hash(buffer, size, md5);
+    printf("%s\n", md5);
 
     list->size.Add(size);
     list->SrcPath.Add(SrcPath);
@@ -395,6 +423,11 @@ long RMupdateManagerConfig::CompareFilesList(fileinfo_t*& src, fileinfo_t*& des)
             //找到了相对路径相同的文件
             UnflagSrcNum--;
             UnflagDesNum--;
+            char srcmd5[33];
+            char desmd5[33];
+            strcpy(srcmd5, src->md5[k].mb_str());
+            strcpy(desmd5, des->md5[k].mb_str());
+            printf("srcmd5=%s, desmd5=%s\n", srcmd5, desmd5);
             if (src->md5[k] != des->md5[k]) ModifiedNum++;
         }
     }
@@ -409,10 +442,10 @@ bool RMupdateManagerConfig::SaveFilesList()
     char path[1024];
 
     strcpy(path, proj.ProjPath.mb_str());
-    sprintf(tmp, "/%ld.%ld.xml", proj.AbsVer, proj.SubAbsVer);
+    sprintf(tmp, "/release/%ld.%ld.xml", proj.AbsVer, proj.SubAbsVer);
     strcat(path, tmp);
 
-    printf("path: %s\n", path);
+    printf("xml path: %s\n", path);
 
     TiXmlDocument* doc = new TiXmlDocument(path);
     TiXmlElement* root = new TiXmlElement("update");
@@ -444,6 +477,7 @@ bool RMupdateManagerConfig::SaveFilesList()
         TiXmlElement* file = new TiXmlElement("file");
         file->SetAttribute("md5", DesFilesList->md5[i].mb_str());
         file->SetAttribute("size", DesFilesList->size[i]);
+        file->SetAttribute("src", DesFilesList->SrcPath[i].mb_str());
         file->LinkEndChild(new TiXmlText(DesFilesList->DesPath[i].mb_str()));
         files->LinkEndChild(file);
     }
