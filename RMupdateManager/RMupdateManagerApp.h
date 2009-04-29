@@ -38,6 +38,7 @@ struct fileinfo_t{
 struct proj_info_t{
     wxString name;
     wxString ProjPath;
+    wxString version;
     mapping_dirs_t MappingDirs;
     mapping_files_t MappingFiles;
     long AbsVer;

@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Apr 21 2008)
+// C++ code generated with wxFormBuilder (version Dec 29 2008)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -48,13 +48,6 @@ FrameProject::FrameProject( wxWindow* parent, wxWindowID id, const wxString& tit
 	
 	this->SetMenuBar( m_menubar1 );
 	
-	m_toolBar1 = this->CreateToolBar( wxTB_HORIZONTAL, wxID_ANY ); 
-	m_toolBar1->AddTool( wxID_NEW, wxT("tool"), wxNullBitmap, wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString );
-	m_toolBar1->AddTool( wxID_SAVE, wxT("tool"), wxNullBitmap, wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString );
-	m_toolBar1->AddTool( wxID_OPEN, wxT("tool"), wxNullBitmap, wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString );
-	m_toolBar1->AddTool( wxID_HELP, wxT("tool"), wxNullBitmap, wxNullBitmap, wxITEM_NORMAL, wxEmptyString, wxEmptyString );
-	m_toolBar1->Realize();
-	
 	wxBoxSizer* bSizer1;
 	bSizer1 = new wxBoxSizer( wxVERTICAL );
 	
@@ -85,16 +78,23 @@ FrameConfig::FrameConfig( wxWindow* parent, wxWindowID id, const wxString& title
 	bSizer7 = new wxBoxSizer( wxVERTICAL );
 	
 	wxFlexGridSizer* fgSizer3;
-	fgSizer3 = new wxFlexGridSizer( 2, 2, 0, 0 );
+	fgSizer3 = new wxFlexGridSizer( 3, 2, 0, 0 );
 	fgSizer3->SetFlexibleDirection( wxBOTH );
 	fgSizer3->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
 	m_staticText6 = new wxStaticText( this, wxID_ANY, wxT("工程名："), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText6->Wrap( -1 );
-	fgSizer3->Add( m_staticText6, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+	fgSizer3->Add( m_staticText6, 0, wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT, 5 );
 	
 	m_textCtrlProjName = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 350,-1 ), 0 );
-	fgSizer3->Add( m_textCtrlProjName, 0, wxALL|wxALIGN_CENTER_HORIZONTAL, 5 );
+	fgSizer3->Add( m_textCtrlProjName, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxEXPAND, 5 );
+	
+	m_staticText3 = new wxStaticText( this, wxID_ANY, wxT("发布版本号："), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText3->Wrap( -1 );
+	fgSizer3->Add( m_staticText3, 0, wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT, 5 );
+	
+	m_textCtrlVersion = new wxTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	fgSizer3->Add( m_textCtrlVersion, 0, wxALL|wxEXPAND, 5 );
 	
 	bSizer7->Add( fgSizer3, 0, wxEXPAND, 5 );
 	
@@ -164,6 +164,7 @@ FrameConfig::FrameConfig( wxWindow* parent, wxWindowID id, const wxString& title
 	
 	// Connect Events
 	m_textCtrlProjName->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( FrameConfig::OnTextChange ), NULL, this );
+	m_textCtrlVersion->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( FrameConfig::OnTextChange ), NULL, this );
 	m_gridMapping->Connect( wxEVT_GRID_CELL_CHANGE, wxGridEventHandler( FrameConfig::OnGridCellChange ), NULL, this );
 	m_buttonAddFile->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnAddFile ), NULL, this );
 	m_buttonAddDir->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnAddDir ), NULL, this );
@@ -176,6 +177,7 @@ FrameConfig::~FrameConfig()
 {
 	// Disconnect Events
 	m_textCtrlProjName->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( FrameConfig::OnTextChange ), NULL, this );
+	m_textCtrlVersion->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( FrameConfig::OnTextChange ), NULL, this );
 	m_gridMapping->Disconnect( wxEVT_GRID_CELL_CHANGE, wxGridEventHandler( FrameConfig::OnGridCellChange ), NULL, this );
 	m_buttonAddFile->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnAddFile ), NULL, this );
 	m_buttonAddDir->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnAddDir ), NULL, this );
