@@ -143,6 +143,14 @@ bool RMupdateManagerApp::CreateProj()
     char cmd[1024];
     sprintf(cmd, "mkdir -p %s/release/res", ConfigDir);
     system(cmd);
+#elif defined(__WXMSW__)
+    char cmd[1024];
+    sprintf(cmd, "mkdir \"%s\\release\\res\" > C:\\a.txt", ConfigDir);
+    FILE* fp1;
+    fp1 = fopen("C:\\b.txt", "w");
+    fwrite(cmd, strlen(cmd), 1, fp1);
+    fclose(fp1);
+    system(cmd);
 #endif
 
     if (!this->CreateProjConfig(ConfigDir)) return false;
