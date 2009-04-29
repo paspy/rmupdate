@@ -71,7 +71,8 @@ RMupdateManagerConfig::RMupdateManagerConfig(wxFrame *frame)
 
     //载入工程配置
     proj_info_t proj = wxGetApp().GetProjInfo();
-    this->m_textCtrlProjName->SetValue(proj.name);
+    m_textCtrlProjName->SetValue(proj.name);
+    m_textCtrlVersion->SetValue(proj.version);
 
     //载入映射列表
     unsigned int i, j = 0;
@@ -242,6 +243,7 @@ void RMupdateManagerConfig::OnRelease(wxCommandEvent& event)
 
     wxGetApp().SetProjInfo(proj);
     wxGetApp().SaveProject();
+
     SaveFilesList();
     UpdateUpdateFile();
     UpdateResourceFiles();
@@ -250,10 +252,11 @@ void RMupdateManagerConfig::OnRelease(wxCommandEvent& event)
 void RMupdateManagerConfig::OnTextChange(wxCommandEvent& event)
 {
     proj_info_t proj = wxGetApp().GetProjInfo();
-    proj.name = m_textCtrlProjName->GetValue();
-    wxGetApp().SetProjInfo(proj);
 
-    m_gridMapping->AutoSizeColumns(true);
+    if (m_textCtrlProjName->GetValue() != wxT("")) proj.name = m_textCtrlProjName->GetValue();
+    if (m_textCtrlVersion->GetValue() != wxT("")) proj.version = m_textCtrlVersion->GetValue();
+
+    wxGetApp().SetProjInfo(proj);
 }
 
 bool RMupdateManagerConfig::LoadFilesList()
@@ -415,6 +418,10 @@ bool RMupdateManagerConfig::SaveFilesList()
     TiXmlElement* root = new TiXmlElement("update");
     doc->LinkEndChild(root);
 
+    TiXmlElement* version = new TiXmlElement("version");
+    version->LinkEndChild(new TiXmlText(proj.version.mb_str()));
+    root->LinkEndChild(version);
+
     TiXmlElement* AbsVer = new TiXmlElement("AbsVer");
     sprintf(tmp, "%ld", proj.AbsVer);
     AbsVer->LinkEndChild(new TiXmlText(tmp));
@@ -514,7 +521,6 @@ void RMupdateManagerConfig::OnDelete(wxCommandEvent& event)
             if (proj.MappingDirs.SrcPath[i] == SrcPath && proj.MappingDirs.DesPath[i] == DesPath) {
                 proj.MappingDirs.SrcPath.RemoveAt(i);
                 proj.MappingDirs.DesPath.RemoveAt(i);
-                printf("delete dir at: %u\n", i);
             }
         }
     }
@@ -523,7 +529,6 @@ void RMupdateManagerConfig::OnDelete(wxCommandEvent& event)
             if (proj.MappingFiles.SrcPath[i] == SrcPath && proj.MappingFiles.DesPath[i] == DesPath) {
                 proj.MappingFiles.SrcPath.RemoveAt(i);
                 proj.MappingFiles.DesPath.RemoveAt(i);
-                printf("delete file at: %u\n", i);
             }
         }
     }

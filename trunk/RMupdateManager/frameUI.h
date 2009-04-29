@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Apr 21 2008)
+// C++ code generated with wxFormBuilder (version Dec 29 2008)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -17,7 +17,6 @@
 #include <wx/font.h>
 #include <wx/colour.h>
 #include <wx/settings.h>
-#include <wx/toolbar.h>
 #include <wx/stattext.h>
 #include <wx/sizer.h>
 #include <wx/frame.h>
@@ -44,7 +43,6 @@ class FrameProject : public wxFrame
 		wxMenuBar* m_menubar1;
 		wxMenu* m_menuFile;
 		wxMenu* m_menuHelp;
-		wxToolBar* m_toolBar1;
 		wxStaticText* m_staticTextProjInfo;
 		
 		// Virtual event handlers, overide them in your derived class
@@ -68,6 +66,8 @@ class FrameConfig : public wxFrame
 	protected:
 		wxStaticText* m_staticText6;
 		wxTextCtrl* m_textCtrlProjName;
+		wxStaticText* m_staticText3;
+		wxTextCtrl* m_textCtrlVersion;
 		wxGrid* m_gridMapping;
 		wxButton* m_buttonAddFile;
 		wxButton* m_buttonAddDir;

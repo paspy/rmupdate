@@ -59,11 +59,16 @@ bool RMupdateManagerApp::LoadProjConfig(const char* path)
     TiXmlHandle root = hDoc.ChildElement("project", 0);
 
     TiXmlElement* eName = (root.ChildElement("name", 0).ToElement());
+    TiXmlElement* eVersion = (root.ChildElement("version", 0).ToElement());
     TiXmlElement* eAbsVer = (root.ChildElement("AbsVer", 0).ToElement());
     TiXmlElement* eSubAbsVer = (root.ChildElement("SubAbsVer", 0).ToElement());
     TiXmlElement* eUpdateTime = (root.ChildElement("UpdateTime", 0).ToElement());
 
-    this->ProjInfo.name = wxString(eName->GetText(), wxConvUTF8);
+    ProjInfo.name = wxString(eName->GetText(), wxConvUTF8);
+    ProjInfo.version = wxString(eVersion->GetText(), wxConvUTF8);
+    char tmp1[1024];
+    strcpy(tmp1, ProjInfo.version.mb_str());
+    printf("loaded version=%s\n", tmp1);
 
     //注意，GetText()在字符串为空是会返回0x0，而atol是不会检查该值的，如果直接调用atol将导致SIGSEGV
     const char* tmp;
@@ -113,13 +118,11 @@ bool RMupdateManagerApp::LoadProjConfig(const char* path)
     return true;
 }
 
-/*proj_info_t RMupdateManagerApp::GetProjInfo()
-{
-    return this->ProjInfo;
-}*/
-
 proj_info_t RMupdateManagerApp::GetProjInfo()
 {
+    char tmp1[1024];
+    strcpy(tmp1, ProjInfo.version.mb_str());
+    printf("on return version=%s\n", tmp1);
     return ProjInfo;
 }
 
@@ -169,6 +172,10 @@ bool RMupdateManagerApp::CreateProjConfig(const char* path)
         TiXmlElement* name = new TiXmlElement("name");
         name->LinkEndChild(new TiXmlText("未命名"));
         root->LinkEndChild(name);
+
+        TiXmlElement* version = new TiXmlElement("version");
+        version->LinkEndChild(new TiXmlText("初始版本"));
+        root->LinkEndChild(version);
 
         TiXmlElement* AbsVer;
         AbsVer = new TiXmlElement("AbsVer");
@@ -231,7 +238,17 @@ bool RMupdateManagerApp::CreateProjConfig(const char* path)
 
 bool RMupdateManagerApp::SetProjInfo(proj_info_t proj)
 {
+    char tmp1[1024];
+    strcpy(tmp1, ProjInfo.version.mb_str());
+    printf("on PRE-setProjInfo version=%s\n", tmp1);
+    strcpy(tmp1, proj.version.mb_str());
+    printf("--In ver: .version=%s\n", tmp1);
+
     ProjInfo = proj;
+
+    strcpy(tmp1, ProjInfo.version.mb_str());
+    printf("on AFTER-setProjInfo version=%s\n", tmp1);
+
     return true;
 }
 
@@ -262,6 +279,10 @@ bool RMupdateManagerApp::SaveProject()
         TiXmlElement* name = new TiXmlElement("name");
         name->LinkEndChild(new TiXmlText(ProjInfo.name.mb_str()));
         root->LinkEndChild(name);
+
+        TiXmlElement* version = new TiXmlElement("version");
+        version->LinkEndChild(new TiXmlText(ProjInfo.version.mb_str()));
+        root->LinkEndChild(version);
 
         TiXmlElement* AbsVer = new TiXmlElement("AbsVer");
         sprintf(tmp, "%ld", ProjInfo.AbsVer);
