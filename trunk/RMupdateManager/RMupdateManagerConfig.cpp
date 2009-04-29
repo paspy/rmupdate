@@ -490,9 +490,22 @@ bool RMupdateManagerConfig::UpdateUpdateFile()
     char buffer[2000];
     char path[1024];
     strcpy(path, proj.ProjPath.mb_str());
-    strcat(path, "/update.xml");
+    strcat(path, "/release/update.xml");
 
     fp = fopen(path, "w");
+    #if defined(__UNIX__)
+    if (!fp) {
+        char CDirPath[1024];
+        char cmd[1024];
+
+        strcpy(CDirPath, path);
+        CDirPath[strrchr(path, '/') - path] = 0;
+        sprintf(cmd, "mkdir -p %s", CDirPath);
+        printf("错误：创建文件失败，试图创建目录：%s\n", path);
+        system(cmd);
+        fp = fopen(path, "w");
+    }
+    #endif
     if (!fp) {
         wxMessageDialog(NULL, _T("无法写入更新文件"), _T("错误"));
         return false;
@@ -552,7 +565,7 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
     fileinfo_t* list = DesFilesList;
 
     strcpy(DirPath, proj.ProjPath.mb_str());
-    strcat(DirPath, "/release/");
+    strcat(DirPath, "/release/res/");
 
     unsigned int i = 0;
     for (i = 0; i < list->SrcPath.Count(); i++) {
