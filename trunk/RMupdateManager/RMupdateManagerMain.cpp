@@ -103,12 +103,6 @@ void RMupdateManagerFrame::OnOpenProj( wxCommandEvent& event )
         info = _T("工程配置：") + proj.ProjPath + wxT("\n") + info;
         info = _T("发布版本：") + proj.version+ wxT("\n") + info;
 
-        char tmp[1024];
-        strcpy(tmp, proj.ProjPath.mb_str());
-        printf("porjpath=%s\n", tmp);
-        strcpy(tmp, proj.version.mb_str());
-        printf("projVersion=%s\n", tmp);
-
         m_staticTextProjInfo->SetLabel(info);
     }
 }
