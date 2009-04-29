@@ -66,9 +66,6 @@ bool RMupdateManagerApp::LoadProjConfig(const char* path)
 
     ProjInfo.name = wxString(eName->GetText(), wxConvUTF8);
     ProjInfo.version = wxString(eVersion->GetText(), wxConvUTF8);
-    char tmp1[1024];
-    strcpy(tmp1, ProjInfo.version.mb_str());
-    printf("loaded version=%s\n", tmp1);
 
     //注意，GetText()在字符串为空是会返回0x0，而atol是不会检查该值的，如果直接调用atol将导致SIGSEGV
     const char* tmp;
@@ -120,9 +117,6 @@ bool RMupdateManagerApp::LoadProjConfig(const char* path)
 
 proj_info_t RMupdateManagerApp::GetProjInfo()
 {
-    char tmp1[1024];
-    strcpy(tmp1, ProjInfo.version.mb_str());
-    printf("on return version=%s\n", tmp1);
     return ProjInfo;
 }
 
@@ -238,17 +232,7 @@ bool RMupdateManagerApp::CreateProjConfig(const char* path)
 
 bool RMupdateManagerApp::SetProjInfo(proj_info_t proj)
 {
-    char tmp1[1024];
-    strcpy(tmp1, ProjInfo.version.mb_str());
-    printf("on PRE-setProjInfo version=%s\n", tmp1);
-    strcpy(tmp1, proj.version.mb_str());
-    printf("--In ver: .version=%s\n", tmp1);
-
     ProjInfo = proj;
-
-    strcpy(tmp1, ProjInfo.version.mb_str());
-    printf("on AFTER-setProjInfo version=%s\n", tmp1);
-
     return true;
 }
 
@@ -261,6 +245,7 @@ bool RMupdateManagerApp::SaveProject()
     }
     else {
         ProjInfo.AbsVer = DateStamp;
+        ProjInfo.SubAbsVer = 0;
     }
     ProjInfo.UpdateTime = time(NULL);
 

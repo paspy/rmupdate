@@ -498,7 +498,9 @@ bool RMupdateManagerConfig::UpdateUpdateFile()
         return false;
     }
 
-    sprintf(buffer, "<update><AbsVer>%ld</AbsVer><SubAbsVer>%ld</SubAbsVer><UpdateTime>%ld</UpdateTime></update>", proj.AbsVer, proj.SubAbsVer, proj.UpdateTime);
+    char version[1024];
+    strcpy(version, proj.version.mb_str());
+    sprintf(buffer, "<update><version>%s</version><AbsVer>%ld</AbsVer><SubAbsVer>%ld</SubAbsVer><UpdateTime>%ld</UpdateTime></update>", version, proj.AbsVer, proj.SubAbsVer, proj.UpdateTime);
     fwrite(buffer, strlen(buffer), 1, fp);
     fclose(fp);
 
