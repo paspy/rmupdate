@@ -123,19 +123,22 @@ proj_info_t RMupdateManagerApp::GetProjInfo()
 bool RMupdateManagerApp::CreateProj()
 {
     //选择文件夹
-    wxDirDialog dlg(NULL);
+    wxDirDialog dlg(NULL, _T("Choose project directory"), _T(""), wxDD_DIR_MUST_EXIST);
 
     if (dlg.ShowModal() != wxID_OK) return false;
 
     char ConfigFile[2048];
-    strcpy(ConfigFile, dlg.GetPath().mb_str());
+    char ConfigDir[2048];
+    strcpy(ConfigDir, dlg.GetPath().mb_str());
 
     //检查是否已经存在一个工程
     FILE* fp;
+    strcpy(ConfigFile, ConfigDir);
+    strcat(ConfigFile, "/config.xml");
     fp = fopen(ConfigFile, "r");
     if (fp && wxMessageDialog(NULL, _T("该目录下似乎已经创建了一个工程，是否覆盖？"), _T("似乎已经存在工程"), wxYES | wxNO | wxICON_QUESTION).ShowModal() != wxID_YES) return false;
 
-    if (!this->CreateProjConfig(ConfigFile)) return false;
+    if (!this->CreateProjConfig(ConfigDir)) return false;
 
     RMupdateManagerConfig* frameConfig = new RMupdateManagerConfig(0L);
     frameConfig->Show();
