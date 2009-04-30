@@ -25,6 +25,7 @@
 #include "lib/file_encrypt.h"
 #endif
 
+
 DECLARE_APP(RMupdateManagerApp);
 
 //helper functions
@@ -137,7 +138,6 @@ void RMupdateManagerConfig::SetStatus(wxString info)
     ttime = localtime(&tt);
     strftime(timestr, 100, "\t%H时%M分%S秒", ttime);
     this->m_statusBar->SetStatusText(info + wxString(timestr, wxConvLibc));
-
 }
 
 void RMupdateManagerConfig::OnAddDir(wxCommandEvent& event)
@@ -509,7 +509,7 @@ bool RMupdateManagerConfig::SaveFilesList()
     else {
         long tmplong;
         encrypt_file_content(buffer, buffer_size, tmplong);
-        fwrite(buffer, buffer_size, 1, fp);
+        fwrite(buffer,      buffer_size, 1, fp);
         fclose(fp);
     }
     #endif
@@ -530,13 +530,11 @@ bool RMupdateManagerConfig::UpdateUpdateFile()
     #if defined(__UNIX__)
     if (!fp) {
         char CDirPath[1024];
-        char cmd[1024];
 
         strcpy(CDirPath, path);
         CDirPath[strrchr(path, '/') - path] = 0;
-        sprintf(cmd, "mkdir -p %s", CDirPath);
         printf("错误：创建文件失败，试图创建目录：%s\n", path);
-        system(cmd);
+        MKDIR(CDirPath);
         fp = fopen(path, "w");
     }
     #endif
@@ -635,19 +633,15 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
 
         //写入文件
         fp = fopen(FilePath, "wb");
-        #if defined(__UNIX__)
         if (!fp) {
             char CDirPath[1024];
-            char cmd[1024];
 
             strcpy(CDirPath, FilePath);
             CDirPath[strrchr(FilePath, '/') - FilePath] = 0;
-            sprintf(cmd, "mkdir -p %s", CDirPath);
             printf("错误：创建文件失败，试图创建目录：%s\n", CDirPath);
-            system(cmd);
+            MKDIR(CDirPath)
             fp = fopen(FilePath, "wb");
         }
-        #endif
 
         if (fp) {
             fwrite(buffer, buffer_size, 1, fp);

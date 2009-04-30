@@ -86,6 +86,7 @@ bool RMupdateManagerApp::LoadProjConfig(const char* path)
     #else
     wxChar slash = wxChar('/');
     #endif
+
     ProjInfo.ProjPath = wxString(path, wxConvLibc).Before(slash);
 
     //载入映射目录和文件表，当然先删除现有的列表
@@ -138,23 +139,16 @@ bool RMupdateManagerApp::CreateProj()
     fp = fopen(ConfigFile, "r");
     if (fp && wxMessageDialog(NULL, _T("该目录下似乎已经创建了一个工程，是否覆盖？"), _T("似乎已经存在工程"), wxYES | wxNO | wxICON_QUESTION).ShowModal() != wxID_YES) return false;
 
-    //for unix, create folder first
-#if defined(__UNIX__)
-    char cmd[1024];
-    sprintf(cmd, "mkdir -p %s/release/res", ConfigDir);
-    system(cmd);
-#elif defined(__WXMSW__)
-    char cmd[1024];
-    sprintf(cmd, "mkdir \"%s\\release\\res\" > C:\\a.txt", ConfigDir);
-    system(cmd);
-#endif
+    //创建工程目录
+    char CDirPath[1024];
+    sprintf(CDirPath, "%s/release/res", ConfigDir);
+    MKDIR(CDirPath);
 
     if (!this->CreateProjConfig(ConfigDir)) return false;
 
     RMupdateManagerConfig* frameConfig = new RMupdateManagerConfig(0L);
     frameConfig->Show();
     return true;
-
 }
 
 bool RMupdateManagerApp::CreateProjConfig(const char* path)
@@ -235,7 +229,6 @@ bool RMupdateManagerApp::CreateProjConfig(const char* path)
         wxMessageDialog(NULL, _T("无法创建配置文件"), _T("错误"),wxOK | wxICON_EXCLAMATION).ShowModal();
         return false;
     }
-
 
     //保存工程属性
     proj_info_t proj;
