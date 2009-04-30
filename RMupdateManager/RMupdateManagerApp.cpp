@@ -64,8 +64,8 @@ bool RMupdateManagerApp::LoadProjConfig(const char* path)
     TiXmlElement* eSubAbsVer = (root.ChildElement("SubAbsVer", 0).ToElement());
     TiXmlElement* eUpdateTime = (root.ChildElement("UpdateTime", 0).ToElement());
 
-    ProjInfo.name = wxString(eName->GetText(), wxConvUTF8);
-    ProjInfo.version = wxString(eVersion->GetText(), wxConvUTF8);
+    ProjInfo.name = wxString(eName->GetText(), wxConvLibc);
+    ProjInfo.version = wxString(eVersion->GetText(), wxConvLibc);
 
     //注意，GetText()在字符串为空是会返回0x0，而atol是不会检查该值的，如果直接调用atol将导致SIGSEGV
     const char* tmp;
@@ -82,11 +82,11 @@ bool RMupdateManagerApp::LoadProjConfig(const char* path)
     this->ProjInfo.UpdateTime = atol(tmp);
 
     #if defined(__WXMSW__)
-    wxChar slash = wxChar('\\');
+    wxChar slash = wxChar('/');
     #else
     wxChar slash = wxChar('/');
     #endif
-    ProjInfo.ProjPath = wxString(path, wxConvUTF8).Before(slash);
+    ProjInfo.ProjPath = wxString(path, wxConvLibc).Before(slash);
 
     //载入映射目录和文件表，当然先删除现有的列表
     this->ProjInfo.MappingDirs.SrcPath.Clear();
@@ -98,8 +98,8 @@ bool RMupdateManagerApp::LoadProjConfig(const char* path)
     TiXmlHandle DomDirs = root.ChildElement("MappingDirs", 0);
     TiXmlHandle DomDir = DomDirs.ChildElement("dir", 0);
     while (DomDir.ToElement()) {
-        ProjInfo.MappingDirs.SrcPath.Add(wxString(DomDir.ChildElement("SrcPath", 0).ToElement()->GetText(), wxConvUTF8));
-        ProjInfo.MappingDirs.DesPath.Add(wxString(DomDir.ChildElement("DesPath", 0).ToElement()->GetText(), wxConvUTF8));
+        ProjInfo.MappingDirs.SrcPath.Add(wxString(DomDir.ChildElement("SrcPath", 0).ToElement()->GetText(), wxConvLibc));
+        ProjInfo.MappingDirs.DesPath.Add(wxString(DomDir.ChildElement("DesPath", 0).ToElement()->GetText(), wxConvLibc));
         DomDir = DomDirs.ChildElement("dir", ++i);
     }
 
@@ -107,8 +107,8 @@ bool RMupdateManagerApp::LoadProjConfig(const char* path)
     TiXmlHandle DomFiles = root.ChildElement("MappingFiles", 0);
     TiXmlHandle DomFile = DomFiles.ChildElement("file", 0);
     while (DomFile.ToElement()) {
-        ProjInfo.MappingFiles.SrcPath.Add(wxString(DomFile.ChildElement("SrcPath", 0).ToElement()->GetText(), wxConvUTF8));
-        ProjInfo.MappingFiles.DesPath.Add(wxString(DomFile.ChildElement("DesPath", 0).ToElement()->GetText(), wxConvUTF8));
+        ProjInfo.MappingFiles.SrcPath.Add(wxString(DomFile.ChildElement("SrcPath", 0).ToElement()->GetText(), wxConvLibc));
+        ProjInfo.MappingFiles.DesPath.Add(wxString(DomFile.ChildElement("DesPath", 0).ToElement()->GetText(), wxConvLibc));
         DomFile = DomFiles.ChildElement("file", ++i);
     }
 
@@ -123,7 +123,7 @@ proj_info_t RMupdateManagerApp::GetProjInfo()
 bool RMupdateManagerApp::CreateProj()
 {
     //选择文件夹
-    wxDirDialog dlg(NULL, _T("Choose project directory"), _T(""), wxDD_DIR_MUST_EXIST);
+    wxDirDialog dlg(NULL);
 
     if (dlg.ShowModal() != wxID_OK) return false;
 
@@ -239,9 +239,9 @@ bool RMupdateManagerApp::CreateProjConfig(const char* path)
 
     //保存工程属性
     proj_info_t proj;
-    proj.name = wxString("未命名", wxConvUTF8);
-    proj.ProjPath = wxString(path, wxConvUTF8);
-    proj.version = wxString("默认版本", wxConvUTF8);
+    proj.name = _T("未命名");
+    proj.ProjPath = wxString(path, wxConvLibc);
+    proj.version = _T("默认版本");
     proj.AbsVer = proj.SubAbsVer = 0;
     this->SetProjInfo(proj);
 
