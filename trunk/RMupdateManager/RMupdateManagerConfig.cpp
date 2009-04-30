@@ -88,7 +88,7 @@ RMupdateManagerConfig::RMupdateManagerConfig(wxFrame *frame)
     for (i = 0; i < SrcPath.Count(); i++) {
         this->m_gridMapping->SetCellValue(j, 0, SrcPath[i]);
         this->m_gridMapping->SetCellValue(j, 1, DesPath[i]);
-        this->m_gridMapping->SetCellValue(j, 2, wxString("目录", wxConvUTF8));
+        this->m_gridMapping->SetCellValue(j, 2, _T("目录"));
         m_gridMapping->SetReadOnly(j, 0, true);
         m_gridMapping->SetReadOnly(j, 2, true);
         j++;
@@ -101,7 +101,7 @@ RMupdateManagerConfig::RMupdateManagerConfig(wxFrame *frame)
     for (i = 0; i < SrcPath.Count(); i++) {
         this->m_gridMapping->SetCellValue(j, 0, SrcPath[i]);
         this->m_gridMapping->SetCellValue(j, 1, DesPath[i]);
-        this->m_gridMapping->SetCellValue(j, 2, wxString("文件", wxConvUTF8));
+        this->m_gridMapping->SetCellValue(j, 2, _T("文件"));
         m_gridMapping->SetReadOnly(j, 0, true);
         m_gridMapping->SetReadOnly(j, 2, true);
         j++;
@@ -136,7 +136,7 @@ void RMupdateManagerConfig::SetStatus(wxString info)
     time(&tt);
     ttime = localtime(&tt);
     strftime(timestr, 100, "\t%H时%M分%S秒", ttime);
-    this->m_statusBar->SetStatusText(info + wxString(timestr, wxConvUTF8));
+    this->m_statusBar->SetStatusText(info + wxString(timestr, wxConvLibc));
 
 }
 
@@ -208,7 +208,7 @@ void RMupdateManagerConfig::OnCheckUpdate(wxCommandEvent& event)
         m_buttonRelease->Enable(true);
         char info[100];
         sprintf(info, "共有%ld个文件更新", UpdateNum);
-        SetStatus(wxString(info, wxConvUTF8));
+        SetStatus(wxString(info, wxConvLibc));
     }
     else {
         SetStatus(_T("没有更新"));
@@ -272,7 +272,7 @@ bool RMupdateManagerConfig::LoadFilesList()
     list->size.Clear();
 
     for (i = 0; i < this->m_gridMapping->GetNumberRows(); i++) {
-        if (this->m_gridMapping->GetCellValue(i, 2) == wxString("目录", wxConvUTF8)) {
+        if (this->m_gridMapping->GetCellValue(i, 2) == _T("目录")) {
             char tmp[1024];
             strcpy(tmp, this->m_gridMapping->GetCellValue(i, 0).mb_str());
             printf("进入映射条目：%s\n", tmp);
@@ -314,9 +314,9 @@ bool RMupdateManagerConfig::LoadFilesList()
     TiXmlHandle DomFile = hUpdate.ChildElement("file", 0);
 
     while (DomFile.ToElement()) {
-        list->DesPath.Add(wxString(DomFile.ToElement()->GetText(), wxConvUTF8));
-        list->SrcPath.Add(wxString(DomFile.ToElement()->Attribute("src"), wxConvUTF8));
-        list->md5.Add(wxString(DomFile.ToElement()->Attribute("md5"), wxConvUTF8));
+        list->DesPath.Add(wxString(DomFile.ToElement()->GetText(), wxConvLibc));
+        list->SrcPath.Add(wxString(DomFile.ToElement()->Attribute("src"), wxConvLibc));
+        list->md5.Add(wxString(DomFile.ToElement()->Attribute("md5"), wxConvLibc));
         const char* tsize = DomFile.ToElement()->Attribute("size");
         if (tsize) {
             list->size.Add(atol(tsize));
@@ -328,7 +328,7 @@ bool RMupdateManagerConfig::LoadFilesList()
         DomFile = hUpdate.ChildElement("file", ++i);
     }
 
-    SetStatus(wxString("更新成功", wxConvUTF8));
+    SetStatus(wxString("更新成功", wxConvLibc));
     return true;
 }
 
@@ -362,11 +362,11 @@ bool RMupdateManagerConfig::LoadFile2List(fileinfo_t*& list, wxString SrcPath, w
     fp = fopen(path, "rb");
     if (!fp) {
         printf("error: can not open %s\n", path );
-        SetStatus(wxString("无法打开文件：", wxConvUTF8) + SrcPath);
+        SetStatus(wxString("无法打开文件：", wxConvLibc) + SrcPath);
         return false;
     }
 
-    this->SetStatus(wxString("正在载入文件：", wxConvUTF8) + SrcPath);
+    this->SetStatus(wxString("正在载入文件：", wxConvLibc) + SrcPath);
     this->Refresh(false);
 
     #ifdef DEBUG
@@ -388,7 +388,7 @@ bool RMupdateManagerConfig::LoadFile2List(fileinfo_t*& list, wxString SrcPath, w
     list->size.Add(size);
     list->SrcPath.Add(SrcPath);
     list->DesPath.Add(DesPath);
-    list->md5.Add(wxString(md5, wxConvUTF8));
+    list->md5.Add(wxString(md5, wxConvLibc));
 
     free(buffer);
 

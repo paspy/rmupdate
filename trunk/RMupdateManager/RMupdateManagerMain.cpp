@@ -103,7 +103,7 @@ void RMupdateManagerFrame::RefreshProjInfo()
                     proj.SubAbsVer,
                     proj.MappingDirs.SrcPath.Count(),
                     proj.MappingFiles.SrcPath.Count());
-    info += _T("最后更新时间：") + wxString(timestr, wxConvUTF8);
+    info += _T("最后更新时间：") + wxString(timestr, wxConvLibc);
     info = _T("工程名：") + proj.name + wxT("\n") + info;
     info = _T("工程配置：") + proj.ProjPath + wxT("\n") + info;
     info = _T("发布版本：") + proj.version+ wxT("\n") + info;
