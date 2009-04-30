@@ -637,7 +637,11 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
             char CDirPath[1024];
 
             strcpy(CDirPath, FilePath);
+        #if defined(__WXMSW__)
+            CDirPath[strrchr(FilePath, '\\') - FilePath] = 0;
+        #elif defined(__UNIX__)
             CDirPath[strrchr(FilePath, '/') - FilePath] = 0;
+        #endif
             printf("错误：创建文件失败，试图创建目录：%s\n", CDirPath);
             MKDIR(CDirPath)
             fp = fopen(FilePath, "wb");
