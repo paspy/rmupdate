@@ -61,11 +61,13 @@ RMupdateManagerFrame::~RMupdateManagerFrame()
 void RMupdateManagerFrame::OnClose(wxCloseEvent &event)
 {
     Destroy();
+    exit(0);
 }
 
 void RMupdateManagerFrame::OnQuit(wxCommandEvent &event)
 {
     Destroy();
+    exit(0);
 }
 
 void RMupdateManagerFrame::OnAbout(wxCommandEvent &event)
@@ -109,4 +111,9 @@ void RMupdateManagerFrame::RefreshProjInfo()
     info = _T("发布版本：") + proj.version+ wxT("\n") + info;
 
     m_staticTextProjInfo->SetLabel(info);
+}
+
+void RMupdateManagerFrame::OnSaveProj( wxCommandEvent& event )
+{
+    wxGetApp().SaveProject();
 }
