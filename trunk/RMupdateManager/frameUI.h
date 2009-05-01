@@ -48,6 +48,8 @@ class FrameProject : public wxFrame
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnCreateProj( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnOpenProj( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnSaveProj( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnQuit( wxCommandEvent& event ){ event.Skip(); }
 		
 	
 	public:
