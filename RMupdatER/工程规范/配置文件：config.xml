@@ -1,0 +1,14 @@
+<config>
+	<!--更新服务器的地址，如：http://www.xxx.com/gameupdate/ ，注意反斜线是必须的，表明这是一个目录而不是文件-->
+	<ServerUrl></ServerUrl>
+	
+	<!--本地游戏的绝对版本号和绝对子版本号-->
+	<AbsVer></AbsVer>
+	<SubAbsVer></SubAbsVer>
+	
+	<!--上次执行检查的时间，单位：时间戳-->
+	<LastCheckTime></LastCheckTime>
+	
+	<!--检查更新的间隔，单位：天-->
+	<CheckInterval></CheckInterval>
+</config>
