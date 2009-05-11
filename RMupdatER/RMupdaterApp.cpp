@@ -112,3 +112,36 @@ void RMupdaterApp::SaveConfig()
 
 	doc.SaveFile();
 }
+
+void RMupdaterApp::LoadUpdateFileList(TiXmlHandle& hDoc)
+{
+	long i;
+	TiXmlHandle root = hDoc.ChildElement("update", 0);
+	TiXmlHandle files = root.ChildElement("files", 0);
+
+	// 先清除原有的数据
+	UpdateList.DesPath.Clear();
+	UpdateList.md5.Clear();
+	UpdateList.size.Clear();
+
+	// 从XML中载入数据
+    i = 0;
+    TiXmlHandle file = files.ChildElement("file", 0);
+    while (file.ToElement()) {
+    	UpdateList.DesPath.Add(wxString(file.ToElement()->GetText(), wxConvLibc));
+    	UpdateList.md5.Add(wxString(file.ToElement()->Attribute("md5"), wxConvLibc));
+    	const char* tsize = file.ToElement()->Attribute("size");
+    	if (tsize != NULL) {
+    		UpdateList.size.Add(atol(tsize));
+    	}
+    	else {
+    		UpdateList.size.Add(0);
+    	}
+    	file = files.ChildElement("file", ++i);
+    }
+}
+
+file_list_t RMupdaterApp::GetUpdateFileList()
+{
+	return UpdateList;
+}
