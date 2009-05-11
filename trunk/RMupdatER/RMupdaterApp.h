@@ -12,6 +12,7 @@
 
 #include <wx/app.h>
 #include "RMupdaterUI.h"
+#include "ticpp/tinyxml.h"
 
 struct config_t{
 	long AbsVer;
@@ -21,11 +22,19 @@ struct config_t{
 	wxString ServerPath;
 };
 
+struct file_list_t{
+	wxArrayString DesPath;
+	wxArrayString md5;
+	wxArrayInt size;
+};
+
+
 class RMupdaterApp : public wxApp
 {
 	private:
 		config_t config;
 		bool LoadConfig();
+		file_list_t UpdateList;
 
     public:
         virtual bool OnInit();
@@ -35,6 +44,8 @@ class RMupdaterApp : public wxApp
         config_t GetConfig();
         void SetConfig(config_t c);
         void SaveConfig();
+        void LoadUpdateFileList(TiXmlHandle& hDoc);
+        file_list_t GetUpdateFileList();
 };
 
 #define pFrameUpdater ((RMupdaterFrame*)wxGetApp().frame)

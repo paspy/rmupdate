@@ -42,6 +42,8 @@ class RMupdaterFrame: public FrameUpdater
         void CheckNewest();
         void ApplyUpdates();
         static size_t curl_writefunction_check(void *ptr, size_t size, size_t nmemb, void *stream);
+        void* DownloadUpdateList(long AbsVer, long SubAbsVer);
+        void LoadUpdateList(TiXmlDocument* doc);
 };
 
 
