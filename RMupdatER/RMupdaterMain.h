@@ -23,6 +23,8 @@ struct writefunction_in_t{
     CURL* curl;
     void* buffer;
     long buffer_ptr;
+    FILE* fp;
+    file_list_t* filelist;
 };
 
 class RMupdaterFrame: public FrameUpdater
@@ -42,8 +44,11 @@ class RMupdaterFrame: public FrameUpdater
         void CheckNewest();
         void ApplyUpdates();
         static size_t curl_writefunction_check(void *ptr, size_t size, size_t nmemb, void *stream);
+        static size_t curl_writefunction_downfile(void *ptr, size_t size, size_t nmemb, void *stream);
         void* DownloadUpdateList(long AbsVer, long SubAbsVer);
         void LoadUpdateList(TiXmlDocument* doc);
+        bool DownloadUpdateFiles();
+        bool DownloadUpdateFile(file_list_t& list, unsigned long i);
 };
 
 

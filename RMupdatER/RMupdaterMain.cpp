@@ -21,6 +21,7 @@
 
 #include <curl/curl.h>
 #include "ticpp/tinyxml.h"
+#include "lib/md5.h"
 
 //helper functions
 enum wxbuildinfoformat {
@@ -71,6 +72,110 @@ void RMupdaterFrame::OnCheck(wxCommandEvent& event)
 
 void RMupdaterFrame::OnUpdate(wxCommandEvent& event)
 {
+	DownloadUpdateFiles();
+}
+
+bool RMupdaterFrame::DownloadUpdateFiles()
+{
+	unsigned long i;
+	file_list_t list = wxGetApp().GetUpdateFileList();
+
+	//重制界面
+	m_gaugeCurrent->SetValue(0);
+	m_gaugeTotal->SetValue(0);
+
+	MKDIR(".tmp");
+	printf("mkdir\n");
+
+	//依次下载
+	for (i = 0; i < list.DesPath.GetCount(); i++) {
+		FILE* fp;
+		char path[2000];
+
+		//首先检查文件是否已经存在
+		strcpy(path, ".tmp/");
+		strcat(path, list.md5[i].mb_str());
+		strcat(path, ".dat");
+
+		fp = fopen(path, "r");
+		if (!fp) {
+			DownloadUpdateFile(list, i);
+		}
+		else {
+			//如果文件存在，则检查文件是否是正确的文件
+			void* buffer;
+			long buffer_size;
+			char md5str[33];
+
+			fseek(fp, 0, SEEK_END);
+			buffer_size = ftell(fp);
+			fseek(fp, 0, SEEK_SET);
+
+			buffer = malloc(buffer_size);
+			fread(buffer, buffer_size, 1, fp);
+			md5hash(buffer, buffer_size, md5str);
+
+			//如果哈希值不符，则从重新下载改文件
+			if (strcmp(md5str, list.md5[i].mb_str()) != 0) {
+				DownloadUpdateFile(list, i);
+			}
+
+			fclose(fp);
+		}
+	}
+
+	return true;
+}
+
+bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
+{
+	writefunction_in_t curl_in;
+	char url[1024];
+	char filepath[1024];
+	CURL* curl;
+	config_t config = wxGetApp().GetConfig();
+
+	// 设置文件路径
+	strcpy(filepath, ".tmp/");
+	strcat(filepath, list.md5[i].mb_str());
+	strcat(filepath, ".dat");
+
+	FILE* fp;
+	fp = fopen(filepath, "w");
+	if (!fp) {
+		m_statusBarInfo->SetStatusText(_T("无法以写模式打开临时文件"));
+		printf("can not open file to write: %s\n", filepath);
+		return false;
+	}
+
+	curl_in.curl = curl;
+	curl_in.buffer = NULL;
+	curl_in.fp = fp;
+	curl_in.filelist = &list;
+
+	strcpy(url, config.ServerPath.mb_str());
+	strcat(url, "res/");
+	strcat(url, list.md5[i].mb_str());
+	strcat(url, ".dat");
+printf("download: %s\n", url);
+	curl = curl_easy_init();
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &RMupdaterFrame::curl_writefunction_downfile);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curl_in);
+	curl_easy_perform(curl);
+
+	long http_code;
+	http_code = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+	if (http_code != 200 && http_code != 206) {
+    	wxString info;
+    	info.Printf(_T("下载文件时发生错误，HTTP错误代码：%ld"), http_code);
+    	SetStatus(info);
+    	return false;
+    }
+
+    fclose(fp);
+
+	return true;
 }
 
 void RMupdaterFrame::CheckNewest()
@@ -91,11 +196,13 @@ void RMupdaterFrame::CheckNewest()
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curl_in);
     curl_easy_perform(curl);
 
+    /*
     if (curl_in.buffer_ptr != 0) {
     	((char*)curl_in.buffer)[curl_in.buffer_ptr] = 0;
     	((char*)curl_in.buffer)[curl_in.buffer_ptr+1] = 0;
 
     }
+    */
 
     long http_code;
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
@@ -256,4 +363,8 @@ size_t RMupdaterFrame::curl_writefunction_check(void *ptr, size_t size, size_t n
     pFrameUpdater->m_gaugeTotal->Update();
 
     return read_size;
+}
+
+size_t RMupdaterFrame::curl_writefunction_downfile(void *ptr, size_t size, size_t nmemb, void *stream){
+	return 0;
 }
