@@ -22,6 +22,8 @@
 #include <curl/curl.h>
 #include "ticpp/tinyxml.h"
 #include "lib/md5.h"
+#include "lib/file_encrypt.h"
+
 
 //helper functions
 enum wxbuildinfoformat {
@@ -80,6 +82,8 @@ bool RMupdaterFrame::DownloadUpdateFiles()
 	unsigned long i;
 	file_list_t list = wxGetApp().GetUpdateFileList();
 
+	m_buttonUpdate->Enable(false);
+
 	//重制界面
 	m_gaugeCurrent->SetValue(0);
 	m_gaugeTotal->SetValue(0);
@@ -122,7 +126,13 @@ bool RMupdaterFrame::DownloadUpdateFiles()
 
 			fclose(fp);
 		}
+
+		m_gaugeTotal->SetValue((i + 1) * 100 / list.DesPath.GetCount());
 	}
+
+	m_staticTextCurProc->SetLabel(_T("当前进度："));
+	m_staticTextTotalProc->SetLabel(_T("总体进度"));
+	m_statusBarInfo->SetStatusText(_T("更新文件下载完成"));
 
 	return true;
 }
@@ -132,12 +142,18 @@ bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
 	writefunction_in_t curl_in;
 	char url[1024];
 	char filepath[1024];
+	char* filename;
 	CURL* curl;
 	config_t config = wxGetApp().GetConfig();
 
+	// 计算文件路径
+	char tmppath[1024];
+	strcpy(tmppath, list.DesPath[i].mb_str());
+	filename = encrypt_file_path(tmppath);
+
 	// 设置文件路径
 	strcpy(filepath, ".tmp/");
-	strcat(filepath, list.md5[i].mb_str());
+	strcat(filepath, filename);
 	strcat(filepath, ".dat");
 
 	FILE* fp;
@@ -148,6 +164,11 @@ bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
 		return false;
 	}
 
+	wxString info;
+	info = (_T("当前进度：正在下载 ") + list.DesPath[i]);
+	m_staticTextCurProc->SetLabel(info);
+
+	curl = curl_easy_init();
 	curl_in.curl = curl;
 	curl_in.buffer = NULL;
 	curl_in.fp = fp;
@@ -155,10 +176,9 @@ bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
 
 	strcpy(url, config.ServerPath.mb_str());
 	strcat(url, "res/");
-	strcat(url, list.md5[i].mb_str());
+	strcat(url, filename);
 	strcat(url, ".dat");
-printf("download: %s\n", url);
-	curl = curl_easy_init();
+
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &RMupdaterFrame::curl_writefunction_downfile);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curl_in);
@@ -190,19 +210,12 @@ void RMupdaterFrame::CheckNewest()
 
 	strcpy(url, config.ServerPath.mb_str());
 	strcat(url, "update.xml");
+	printf("url=%s\n", url);
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &RMupdaterFrame::curl_writefunction_check);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curl_in);
     curl_easy_perform(curl);
-
-    /*
-    if (curl_in.buffer_ptr != 0) {
-    	((char*)curl_in.buffer)[curl_in.buffer_ptr] = 0;
-    	((char*)curl_in.buffer)[curl_in.buffer_ptr+1] = 0;
-
-    }
-    */
 
     long http_code;
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
@@ -222,13 +235,12 @@ void RMupdaterFrame::CheckNewest()
 		wxString version;
 
     	doc.Parse((const char*)curl_in.buffer);
+    	printf("xml=%s\n", (const char*)curl_in.buffer);
     	if (doc.ErrorId() != 0) {
     		wxString info;
     		wxString errinfo;
     		errinfo = wxString(doc.ErrorDesc(), wxConvLibc);
     		info.Printf(_T("加载更新文件时发生错误：TiXmlError: ") + errinfo );
-    		//printf("TiXmlError: line=%d, col%d, ErrId=%d\n", doc.ErrorRow(), doc.ErrorCol(), doc.ErrorId());
-    		//printf("xml content:\n%s\n", (const char*)curl_in.buffer);
     		wxMessageDialog(NULL, info, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
     		m_buttonCheck->Enable(true);
     		SetStatus(info);
@@ -292,7 +304,6 @@ void RMupdaterFrame::CheckNewest()
 }
 
 
-
 void* RMupdaterFrame::DownloadUpdateList(long AbsVer, long SubAbsVer)
 {
 	writefunction_in_t curl_in;
@@ -316,7 +327,7 @@ void* RMupdaterFrame::DownloadUpdateList(long AbsVer, long SubAbsVer)
 	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 	curl_easy_cleanup(curl);
 
-	if (http_code != 200 && http_code != 206) {
+	if (http_code != 200 && http_code != 206 && !http_code) {
 		wxString info;
 		info.Printf(_T("下载更新列表文件时发生错误，HTTP错误代码：%ld"), http_code);
 		wxMessageDialog(NULL, info, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
@@ -333,7 +344,7 @@ void RMupdaterFrame::ApplyUpdates()
 
 size_t RMupdaterFrame::curl_writefunction_check(void *ptr, size_t size, size_t nmemb, void *stream)
 {
-    size_t read_size = size * nmemb;setlocale(LC_ALL,".ACP");
+    size_t read_size = size * nmemb;
     writefunction_in_t* in = (writefunction_in_t*)stream;
 
     double content_length;
@@ -342,7 +353,7 @@ size_t RMupdaterFrame::curl_writefunction_check(void *ptr, size_t size, size_t n
     //检查HTTP代码
     double http_code;
     curl_easy_getinfo(in->curl, CURLINFO_RESPONSE_CODE, &http_code);
-    //if (http_code != 200 && http_code != 206) return 0;
+    if (http_code != 200 && http_code != 206 && !http_code) return 0;
 
 	//初始化缓冲区
     if (in->buffer == NULL) {
@@ -366,5 +377,26 @@ size_t RMupdaterFrame::curl_writefunction_check(void *ptr, size_t size, size_t n
 }
 
 size_t RMupdaterFrame::curl_writefunction_downfile(void *ptr, size_t size, size_t nmemb, void *stream){
-	return 0;
+	size_t read_size = size * nmemb;
+	writefunction_in_t* in = (writefunction_in_t*)stream;
+
+	double content_length, speed_download, http_code;
+
+	curl_easy_getinfo(in->curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &content_length);
+	curl_easy_getinfo(in->curl, CURLINFO_RESPONSE_CODE, &http_code);
+	curl_easy_getinfo(in->curl, CURLINFO_SPEED_DOWNLOAD, &speed_download);
+
+	if (http_code != 200 && http_code != 206 && !http_code) return 0;
+
+	fwrite(ptr, read_size, 1, in->fp);
+
+	wxString info;
+	size_t size_down = ftell(in->fp);
+	info.Printf(_T("共%1$.0lf字节，已下载 %2$ld 字节，速度 %3$.1lf KB/s"), content_length, size_down, speed_download / 1024);
+	pFrameUpdater->SetStatus(info);
+	pFrameUpdater->m_gaugeCurrent->SetValue(size_down * 100 / content_length);
+	pFrameUpdater->m_gaugeCurrent->Update();
+	wxGetApp().Yield();
+
+	return read_size;
 }
