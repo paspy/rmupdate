@@ -23,7 +23,10 @@
 #include "ticpp/tinyxml.h"
 #include "lib/md5.h"
 #include "lib/file_encrypt.h"
+#include "rgss2a.h"
 
+#include <iostream>
+#include <string.h>
 
 //helper functions
 enum wxbuildinfoformat {
@@ -185,10 +188,11 @@ bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
 	curl_easy_perform(curl);
 
 	long http_code;
-	http_code = curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+	http_code = curl_in.http_code;
 	if (http_code != 200 && http_code != 206) {
     	wxString info;
     	info.Printf(_T("下载文件时发生错误，HTTP错误代码：%ld"), http_code);
+    	printf("error downloading file: %ld, %s\n", http_code, url);
     	SetStatus(info);
     	return false;
     }
@@ -216,11 +220,10 @@ void RMupdaterFrame::CheckNewest()
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &RMupdaterFrame::curl_writefunction_check);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curl_in);
     curl_easy_perform(curl);
-
-    long http_code;
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
     curl_easy_cleanup(curl);
 
+    long http_code;
+    http_code = curl_in.http_code;
     if (http_code != 200 && http_code != 206) {
     	wxString info;
     	info.Printf(_T("下载更新文件时发生错误，HTTP错误代码：%ld"), http_code);
@@ -322,12 +325,11 @@ void* RMupdaterFrame::DownloadUpdateList(long AbsVer, long SubAbsVer)
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &RMupdaterFrame::curl_writefunction_check);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curl_in);
 	curl_easy_perform(curl);
-
-	long http_code;
-	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 	curl_easy_cleanup(curl);
 
-	if (http_code != 200 && http_code != 206 && !http_code) {
+	long http_code;
+	http_code = curl_in.http_code;
+	if (http_code != 200 && http_code != 206) {
 		wxString info;
 		info.Printf(_T("下载更新列表文件时发生错误，HTTP错误代码：%ld"), http_code);
 		wxMessageDialog(NULL, info, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
@@ -340,6 +342,84 @@ void* RMupdaterFrame::DownloadUpdateList(long AbsVer, long SubAbsVer)
 
 void RMupdaterFrame::ApplyUpdates()
 {
+	file_list_t list = wxGetApp().GetUpdateFileList();
+	unsigned long i;
+	char* enc_filename;
+	char filename[1024];
+	char filename_des[1024];
+	void* buffer;
+	long buffer_size;
+	FILE* fp;
+	FILE* fp2;
+
+	rg_write = new rgss2a;
+	rg_write->CreateRgss2aFile("Game.rgss2a.new");
+
+	for (i = 0; i < list.DesPath.GetCount(); i++) {
+		enc_filename = encrypt_file_path(list.DesPath[i].mb_str());
+		sprintf(filename, "./tmp/%s.dat", enc_filename);
+
+		// 设置读文件句柄
+		fp = fopen(filename, "r");
+		if (!fp) {
+			printf("无法打开文件：%s\n", filename);
+			wxMessageDialog(NULL, _T("无法打开文件：") + wxString(filename, wxConvLibc), _T("应用更新时发生错误"), wxICON_EXCLAMATION | wxID_OK).ShowModal();
+			return;
+		}
+		else {
+			fseek(fp, 0, SEEK_END);
+			buffer_size = ftell(fp);
+			fseek(fp, 0, SEEK_SET);
+		}
+
+		// 设置写文件句柄
+		strcpy(filename_des, list.DesPath[i].mb_str());
+		fp2 = fopen(filename_des, "w");
+		if (!fp2) {
+			printf("无法打开文件进行写入：%s\n", filename_des);
+			wxMessageDialog(NULL, _T("无法以写模式打开文件：") + wxString(filename_des, wxConvLibc), _T("应用更新时发生错误"), wxICON_EXCLAMATION | wxID_OK).ShowModal();
+			fclose(fp);
+			return ;
+		}
+
+		// 应用更新
+		buffer = malloc(buffer_size);
+		fread(buffer, buffer_size, 1, fp);
+	#ifdef RMUPDATE_ENCRYPT_FILE
+		long tmplong;
+		encrypt_file_content(buffer, buffer_size, tmplong);
+	#endif
+		ApplyUpdateFile(filename, buffer, buffer_size);
+
+		// 结束释放内存
+		free (buffer);
+		free (enc_filename);
+	}
+
+	delete(rg_write);
+}
+
+bool RMupdaterFrame::ApplyUpdateFile(const char* despath, void* content, long content_size)
+{
+	// 对于需要打包的文件和不需要打包的文件要分开处理
+	if (
+		strstr(despath, "Data/") == despath ||
+		strstr(despath, "Graphics/") == despath
+	){
+		rg_write->WriteSubFile(despath, content, content_size);
+	}
+	else {
+		FILE* fp;
+		fp = fopen(despath, "wb");
+		if (fp == NULL) {
+			printf("无法以写模式打开文件：%s\n", despath);
+			return false;
+		}
+		fwrite(content, content_size, 1, fp);
+		fclose(fp);
+	}
+
+	return true;
 }
 
 size_t RMupdaterFrame::curl_writefunction_check(void *ptr, size_t size, size_t nmemb, void *stream)
@@ -349,11 +429,11 @@ size_t RMupdaterFrame::curl_writefunction_check(void *ptr, size_t size, size_t n
 
     double content_length;
     curl_easy_getinfo(in->curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &content_length);
+	curl_easy_getinfo(in->curl, CURLINFO_RESPONSE_CODE, &in->http_code);
 
-    //检查HTTP代码
-    double http_code;
-    curl_easy_getinfo(in->curl, CURLINFO_RESPONSE_CODE, &http_code);
-    if (http_code != 200 && http_code != 206 && !http_code) return 0;
+	if (in->http_code != 200 && in->http_code != 206 && in->http_code != 0) {
+		return 0;
+	}
 
 	//初始化缓冲区
     if (in->buffer == NULL) {
@@ -380,13 +460,15 @@ size_t RMupdaterFrame::curl_writefunction_downfile(void *ptr, size_t size, size_
 	size_t read_size = size * nmemb;
 	writefunction_in_t* in = (writefunction_in_t*)stream;
 
-	double content_length, speed_download, http_code;
+	double content_length, speed_download;
 
 	curl_easy_getinfo(in->curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &content_length);
-	curl_easy_getinfo(in->curl, CURLINFO_RESPONSE_CODE, &http_code);
 	curl_easy_getinfo(in->curl, CURLINFO_SPEED_DOWNLOAD, &speed_download);
+	curl_easy_getinfo(in->curl, CURLINFO_RESPONSE_CODE, &in->http_code);
 
-	if (http_code != 200 && http_code != 206 && !http_code) return 0;
+	if (in->http_code != 200 && in->http_code != 206 && in->http_code != 0) {
+		return 0;
+	}
 
 	fwrite(ptr, read_size, 1, in->fp);
 
