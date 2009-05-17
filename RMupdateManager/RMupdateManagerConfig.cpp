@@ -244,9 +244,9 @@ void RMupdateManagerConfig::OnRelease(wxCommandEvent& event)
     wxGetApp().SetProjInfo(proj);
     wxGetApp().SaveProject();
 
+	UpdateResourceFiles();
     SaveFilesList();
     UpdateUpdateFile();
-    UpdateResourceFiles();
 }
 
 void RMupdateManagerConfig::OnTextChange(wxCommandEvent& event)
