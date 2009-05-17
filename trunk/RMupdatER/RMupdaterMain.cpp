@@ -25,9 +25,6 @@
 #include "lib/file_encrypt.h"
 #include "rgss2a.h"
 
-#include <iostream>
-#include <string.h>
-
 //helper functions
 enum wxbuildinfoformat {
     short_f, long_f };
@@ -98,18 +95,21 @@ bool RMupdaterFrame::DownloadUpdateFiles()
 	for (i = 0; i < list.DesPath.GetCount(); i++) {
 		FILE* fp;
 		char path[2000];
+		char* name_enc;
 
 		//首先检查文件是否已经存在
-		strcpy(path, ".tmp/");
-		strcat(path, list.md5[i].mb_str());
-		strcat(path, ".dat");
+		name_enc = encrypt_file_path(list.DesPath[i].mb_str());
+		sprintf(path, ".tmp/%s.dat", name_enc);
+		free(name_enc);
 
 		fp = fopen(path, "r");
+		printf("读取文件进行检查：%s\n", path);
 		if (!fp) {
-			DownloadUpdateFile(list, i);
+			if (!DownloadUpdateFile(list, i)) return false;
 		}
 		else {
 			//如果文件存在，则检查文件是否是正确的文件
+			printf("文件已经存在，进行检查\n");
 			void* buffer;
 			long buffer_size;
 			char md5str[33];
@@ -123,8 +123,11 @@ bool RMupdaterFrame::DownloadUpdateFiles()
 			md5hash(buffer, buffer_size, md5str);
 
 			//如果哈希值不符，则从重新下载改文件
+			char tmp[33];
+			strcpy(tmp, list.md5[i].mb_str());
+			printf("两个哈希值：%s\n%s\n", md5str, tmp);
 			if (strcmp(md5str, list.md5[i].mb_str()) != 0) {
-				DownloadUpdateFile(list, i);
+				if (!DownloadUpdateFile(list, i)) return false;
 			}
 
 			fclose(fp);
@@ -136,6 +139,9 @@ bool RMupdaterFrame::DownloadUpdateFiles()
 	m_staticTextCurProc->SetLabel(_T("当前进度："));
 	m_staticTextTotalProc->SetLabel(_T("总体进度"));
 	m_statusBarInfo->SetStatusText(_T("更新文件下载完成"));
+
+	// 调用应用更新的函数进行文件覆盖更新
+	ApplyUpdates();
 
 	return true;
 }
@@ -160,8 +166,8 @@ bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
 	strcat(filepath, ".dat");
 
 	FILE* fp;
-	fp = fopen(filepath, "w");
-	if (!fp) {
+	fp = fopen(filepath, "wb");
+	if (fp == NULL) {
 		m_statusBarInfo->SetStatusText(_T("无法以写模式打开临时文件"));
 		printf("can not open file to write: %s\n", filepath);
 		return false;
@@ -186,6 +192,10 @@ bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &RMupdaterFrame::curl_writefunction_downfile);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curl_in);
 	curl_easy_perform(curl);
+	curl_easy_cleanup(curl);
+
+	free(filename);
+	fclose(fp);
 
 	long http_code;
 	http_code = curl_in.http_code;
@@ -196,8 +206,6 @@ bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
     	SetStatus(info);
     	return false;
     }
-
-    fclose(fp);
 
 	return true;
 }
@@ -350,20 +358,20 @@ void RMupdaterFrame::ApplyUpdates()
 	void* buffer;
 	long buffer_size;
 	FILE* fp;
-	FILE* fp2;
 
 	rg_write = new rgss2a;
 	rg_write->CreateRgss2aFile("Game.rgss2a.new");
 
 	for (i = 0; i < list.DesPath.GetCount(); i++) {
 		enc_filename = encrypt_file_path(list.DesPath[i].mb_str());
-		sprintf(filename, "./tmp/%s.dat", enc_filename);
+		sprintf(filename, ".tmp/%s.dat", enc_filename);
 
 		// 设置读文件句柄
 		fp = fopen(filename, "r");
 		if (!fp) {
 			printf("无法打开文件：%s\n", filename);
 			wxMessageDialog(NULL, _T("无法打开文件：") + wxString(filename, wxConvLibc), _T("应用更新时发生错误"), wxICON_EXCLAMATION | wxID_OK).ShowModal();
+			m_statusBarInfo->SetStatusText(_T("应用更新失败"));
 			return;
 		}
 		else {
@@ -372,28 +380,21 @@ void RMupdaterFrame::ApplyUpdates()
 			fseek(fp, 0, SEEK_SET);
 		}
 
-		// 设置写文件句柄
-		strcpy(filename_des, list.DesPath[i].mb_str());
-		fp2 = fopen(filename_des, "w");
-		if (!fp2) {
-			printf("无法打开文件进行写入：%s\n", filename_des);
-			wxMessageDialog(NULL, _T("无法以写模式打开文件：") + wxString(filename_des, wxConvLibc), _T("应用更新时发生错误"), wxICON_EXCLAMATION | wxID_OK).ShowModal();
-			fclose(fp);
-			return ;
-		}
-
 		// 应用更新
 		buffer = malloc(buffer_size);
 		fread(buffer, buffer_size, 1, fp);
 	#ifdef RMUPDATE_ENCRYPT_FILE
 		long tmplong;
-		encrypt_file_content(buffer, buffer_size, tmplong);
+		decrypt_file_content(buffer, buffer_size, tmplong);
 	#endif
-		ApplyUpdateFile(filename, buffer, buffer_size);
+
+		strcpy(filename_des, list.DesPath[i].mb_str());
+		ApplyUpdateFile(filename_des, buffer, buffer_size);
 
 		// 结束释放内存
 		free (buffer);
 		free (enc_filename);
+		fclose(fp);
 	}
 
 	delete(rg_write);
@@ -401,6 +402,7 @@ void RMupdaterFrame::ApplyUpdates()
 
 bool RMupdaterFrame::ApplyUpdateFile(const char* despath, void* content, long content_size)
 {
+	printf("应用更新：%s\n", despath);
 	// 对于需要打包的文件和不需要打包的文件要分开处理
 	if (
 		strstr(despath, "Data/") == despath ||
@@ -409,13 +411,27 @@ bool RMupdaterFrame::ApplyUpdateFile(const char* despath, void* content, long co
 		rg_write->WriteSubFile(despath, content, content_size);
 	}
 	else {
+		// 设置写文件句柄
 		FILE* fp;
 		fp = fopen(despath, "wb");
 		if (fp == NULL) {
-			printf("无法以写模式打开文件：%s\n", despath);
+			char newdir[1024];
+			strcpy(newdir, despath);
+			newdir[strrchr(newdir, '/') - newdir] = 0;
+			MKDIR(newdir);
+			fp = fopen(despath, "wb");
+		}
+
+		if (fp == NULL) {
+			printf("无法打开文件进行写入：%s\n", despath);
+			wxMessageDialog(NULL, _T("无法以写模式打开文件：") + wxString(despath, wxConvLibc), _T("应用更新时发生错误"), wxICON_EXCLAMATION | wxID_OK).ShowModal();
+			fclose(fp);
 			return false;
 		}
-		fwrite(content, content_size, 1, fp);
+
+		printf("写入到：%s\n", despath);
+		fwrite(content, 1, content_size, fp);
+
 		fclose(fp);
 	}
 
@@ -470,7 +486,7 @@ size_t RMupdaterFrame::curl_writefunction_downfile(void *ptr, size_t size, size_
 		return 0;
 	}
 
-	fwrite(ptr, read_size, 1, in->fp);
+	fwrite(ptr, size, nmemb, in->fp);
 
 	wxString info;
 	size_t size_down = ftell(in->fp);
