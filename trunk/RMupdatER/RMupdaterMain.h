@@ -19,10 +19,13 @@
 
 #include <curl/curl.h>
 
+#include "rgss2a.h"
+
 struct writefunction_in_t{
     CURL* curl;
     void* buffer;
     long buffer_ptr;
+    long http_code;
     FILE* fp;
     file_list_t* filelist;
 };
@@ -33,6 +36,8 @@ class RMupdaterFrame: public FrameUpdater
         RMupdaterFrame(wxFrame *frame, const wxString& title);
         ~RMupdaterFrame();
     private:
+		rgss2a* rg_write;
+		rgss2a* rg_read;
 
         void OnClose(wxCloseEvent& event);
         void OnQuit(wxCommandEvent& event);
@@ -49,6 +54,7 @@ class RMupdaterFrame: public FrameUpdater
         void LoadUpdateList(TiXmlDocument* doc);
         bool DownloadUpdateFiles();
         bool DownloadUpdateFile(file_list_t& list, unsigned long i);
+        bool ApplyUpdateFile(const char* despath, void* content, long content_size);
 };
 
 

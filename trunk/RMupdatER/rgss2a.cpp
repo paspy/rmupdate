@@ -1,9 +1,15 @@
-/*
- * RGSS2A/RGSSAD 文件加密算法描述：http://blog.csdn.net/leexuany/archive/2008/08/24/2824795.aspx ，作者：leexuany(小宝)
- *
- * 在一个实例中， OpenRgss2aFile 和 CreateRgss2aFile 方法是互斥的。
-*/
-
+/***************************************************************
+ * Name:      rgss2a.cpp
+ * Purpose:   Code for RGSS2A/RGSSAD File Handler
+ * Author:    gs (gs@bbxy.net)
+ * Created:   2009-05-16
+ * Copyright: GPLv3
+ * License:
+ * 
+ * 注意：在一个实例中， OpenRgss2aFile 和 CreateRgss2aFile 方法是互斥的。
+ * 
+ * 加密算法描述：http://blog.csdn.net/leexuany/archive/2008/08/24/2824795.aspx （leexuany(小宝)）
+ **************************************************************/
 #include "stdio.h"
 #include "stdlib.h"
 #include "rgss2a.h"

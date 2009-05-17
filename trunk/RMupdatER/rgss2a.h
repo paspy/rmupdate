@@ -1,3 +1,12 @@
+/***************************************************************
+ * Name:      rgss2a.h
+ * Purpose:   Code for RGSS2A/RGSSAD File Handler
+ * Author:    gs (gs@bbxy.net)
+ * Created:   2009-05-16
+ * Copyright: GPLv3
+ * License:
+ **************************************************************/
+
 #ifndef RGSS2A_H_INCLUDED
 #define RGSS2A_H_INCLUDED
 
