@@ -440,8 +440,10 @@ bool RMupdateManagerConfig::SaveFilesList()
     proj_info_t proj = wxGetApp().GetProjInfo();
     char tmp[1024];
     char path[1024];
+    char proj_path[1024];
 
-    strcpy(path, proj.ProjPath.mb_str());
+    strcpy(proj_path, proj.ProjPath.mb_str());
+    strcpy(path, proj_path);
     sprintf(tmp, "/release/%ld.%ld.xml", proj.AbsVer, proj.SubAbsVer);
     strcat(path, tmp);
 
@@ -475,7 +477,34 @@ bool RMupdateManagerConfig::SaveFilesList()
     TiXmlElement* files = new TiXmlElement("files");
     for (i = 0; i < DesFilesList->DesPath.GetCount(); i++) {
         TiXmlElement* file = new TiXmlElement("file");
-        file->SetAttribute("md5", DesFilesList->md5[i].mb_str());
+	#ifdef RMUPDATE_ENCRYPT_FILE
+        // 如果是加密发布，按照工程规范应该计算服务器上的文件的MD5值
+        char* md5;
+        char filepath[1024];
+        char filename[1024];
+        void* buffer;
+        long buffer_size;
+        FILE* fp_r;
+
+        strcpy(filename, DesFilesList->DesPath[i].mb_str());
+        md5 = encrypt_file_path(filename);;
+        sprintf(filepath, "%s/release/res/%s.dat", proj_path, md5);
+        fp_r = fopen(filepath, "rb");
+        fseek(fp_r, 0, SEEK_END);
+        buffer_size = ftell(fp_r);
+        fseek(fp_r, 0, SEEK_SET);
+        buffer = malloc(buffer_size);
+        fread(buffer, buffer_size, 1, fp_r);
+
+        md5hash(buffer, buffer_size, md5);
+        file->SetAttribute("md5", md5);
+
+        free(buffer);
+        free(md5);
+        fclose(fp_r);
+	#else
+		file->SetAttribute("md5", DesFilesList->md5[i].mb_str());
+	#endif
         file->SetAttribute("size", DesFilesList->size[i]);
         file->SetAttribute("src", DesFilesList->SrcPath[i].mb_str());
         file->LinkEndChild(new TiXmlText(DesFilesList->DesPath[i].mb_str()));
@@ -509,7 +538,7 @@ bool RMupdateManagerConfig::SaveFilesList()
     else {
         long tmplong;
         encrypt_file_content(buffer, buffer_size, tmplong);
-        fwrite(buffer,      buffer_size, 1, fp);
+        fwrite(buffer, buffer_size, 1, fp);
         fclose(fp);
     }
     #endif
@@ -618,10 +647,13 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
     #ifdef RMUPDATE_ENCRYPT_FILE
         // 加密文件名
         char tmppath[1024];
+        char* md5;
         strcpy(tmppath, list->DesPath[i].mb_str());
         strcpy(FilePath, DirPath);
-        strcat(FilePath, encrypt_file_path(tmppath));
+        md5 = encrypt_file_path(tmppath);
+        strcat(FilePath, md5);
         strcat(FilePath, ".dat");
+        free(md5);
 
         // 加密文件内容。。！这里的内存没有处理好，按照加密函数中的定义，应该删除传入的buffer，而加密内容的指针是encrypt_file_content的返回值
         long tmplong;
