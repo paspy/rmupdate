@@ -5,9 +5,9 @@
  * Created:   2009-05-16
  * Copyright: GPLv3
  * License:
- * 
+ *
  * 注意：在一个实例中， OpenRgss2aFile 和 CreateRgss2aFile 方法是互斥的。
- * 
+ *
  * 加密算法描述：http://blog.csdn.net/leexuany/archive/2008/08/24/2824795.aspx （leexuany(小宝)）
  **************************************************************/
 #include "stdio.h"
@@ -120,6 +120,7 @@ bool rgss2a::WriteSubFile(const char* filename, void* content, unsigned long con
 	name = (char*)malloc(name_length+100);
 	memcpy(name, filename, name_length);
 	for (i = 0; i < name_length; i++) {
+		if (name[i] == '/') name[i] = '\\';		// Windwos下的目录是以反斜杠分隔的，斜杠的RM会无法识别
 		name[i] ^= magic_key & 0xff;
 		magic_key = magic_key_E(magic_key);
 	}
@@ -149,7 +150,7 @@ void rgss2a::encrypt_content(void* buffer, unsigned long buffer_size, long conte
 
 	buf = (long*) buffer;
 
-	for (i = 0; i < buffer_size / 4; i++) {
+	for (i = 0; i <= (buffer_size -1) / 4; i++) {
 		buf[i] ^= content_magic_key;
 		content_magic_key = magic_key_E(content_magic_key);
 	}
