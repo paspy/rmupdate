@@ -77,9 +77,11 @@ void RMupdaterFrame::OnQuit(wxCommandEvent &event)
 void RMupdaterFrame::OnStart(wxCommandEvent& event)
 {
 #if defined(__WXMSW__)
-	char exepath[2000];
-	strcpy(exepath, "Game.exe");
-	ShellExecute(NULL, "open", exepath, "", "", SW_SHOW);
+	WCHAR exepath[2000];
+	WCHAR openstr[20];
+	mbstowcs(openstr, "open", 5);
+	mbstowcs(exepath, "Game.exe", 9);
+	ShellExecute(NULL, openstr, exepath, NULL, NULL, SW_SHOW);
 #elif defined(__UNIX__)
 	char cmd[2000];
 	sprintf(cmd, "wine '%s' &", "./Game.exe");
