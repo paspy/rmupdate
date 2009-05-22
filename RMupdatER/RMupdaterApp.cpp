@@ -145,3 +145,14 @@ file_list_t RMupdaterApp::GetUpdateFileList()
 {
 	return UpdateList;
 }
+
+void RMupdaterApp::UpdateVersionInfo(config_t ver)
+{
+	config_t c = GetConfig();
+	c.AbsVer = ver.AbsVer;
+	c.SubAbsVer = ver.SubAbsVer;
+	SetConfig(c);
+	printf("config set, absver=%ld, subabsver=%ld\n", ver.AbsVer, ver.SubAbsVer);
+	SaveConfig();
+	printf("更新文件保存了\n");
+}

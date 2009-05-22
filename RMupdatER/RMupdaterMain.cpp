@@ -93,7 +93,9 @@ void RMupdaterFrame::OnCheck(wxCommandEvent& event)
 
 void RMupdaterFrame::OnUpdate(wxCommandEvent& event)
 {
-	DownloadUpdateFiles();
+	if (DownloadUpdateFiles()) {
+		wxGetApp().UpdateVersionInfo(ServerVer);
+	}
 }
 
 bool RMupdaterFrame::DownloadUpdateFiles()
@@ -262,12 +264,14 @@ void RMupdaterFrame::CheckNewest()
     }
     else {
     	TiXmlDocument doc;
-		long absver, subabsver, updatetime;
 		wxString version;
+		long updatetime;
 
     	doc.Parse((const char*)curl_in.buffer);
     	printf("xml=%s\n", (const char*)curl_in.buffer);
+		free(curl_in.buffer);
     	if (doc.ErrorId() != 0) {
+    		// 如果载入XML更新信息文件出错
     		wxString info;
     		wxString errinfo;
     		errinfo = wxString(doc.ErrorDesc(), wxConvLibc);
@@ -278,6 +282,7 @@ void RMupdaterFrame::CheckNewest()
     		return;
     	}
     	else {
+    		// 成功载入XML更新信息文件
     		TiXmlHandle hDoc(&doc);
     		TiXmlHandle root = hDoc.ChildElement("update", 0);
 
@@ -287,15 +292,21 @@ void RMupdaterFrame::CheckNewest()
 			strcpy(tmp, root.ChildElement("version", 0).ToElement()->GetText());
 			version = wxString(tmp, wxConvLibc);
 			val = root.ChildElement("AbsVer", 0).ToElement()->GetText();
-			absver = val ? atol(val) : 0;
+			ServerVer.AbsVer = val ? atol(val) : 0;
 			val = root.ChildElement("SubAbsVer", 0).ToElement()->GetText();
-			subabsver = val ? atol(val) : 0;
+			ServerVer.SubAbsVer = val ? atol(val) : 0;
 			val = root.ChildElement("UpdateTime", 0).ToElement()->GetText();
 			updatetime = val ? atol(val) : 0;
     	}
 
+    	// 更新最后检查更新的时间
+    	config.LastCheckTime = time(NULL);
+    	wxGetApp().SetConfig(config);
+    	wxGetApp().SaveConfig();
+    	printf("最后更新时间已保存\n");
+
     	//检查更新情况
-    	if (config.AbsVer != absver || config.SubAbsVer != subabsver) {
+    	if (config.AbsVer != ServerVer.AbsVer || config.SubAbsVer != ServerVer.SubAbsVer) {
     		//有更新
     		wxString info;
 			struct tm *ttime;
@@ -311,7 +322,7 @@ void RMupdaterFrame::CheckNewest()
 
 			//下载更新列表文件
     		void* buf;
-    		buf = DownloadUpdateList(absver, subabsver);
+    		buf = DownloadUpdateList(ServerVer.AbsVer, ServerVer.SubAbsVer);
     		TiXmlDocument docl;
     		docl.Parse((const char*)buf);
     		if (docl.ErrorId() != 0) {
