@@ -39,6 +39,9 @@ class RMupdaterFrame: public FrameUpdater
 		rgss2a* rg_write;
 		rgss2a* rg_read;
 
+		config_t LocalVer;
+		config_t ServerVer;
+
         void OnClose(wxCloseEvent& event);
         void OnQuit(wxCommandEvent& event);
         void OnCheck(wxCommandEvent& event);
