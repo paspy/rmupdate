@@ -74,6 +74,20 @@ void RMupdaterFrame::OnQuit(wxCommandEvent &event)
     exit(0);
 }
 
+void RMupdaterFrame::OnStart(wxCommandEvent& event)
+{
+#if defined(__WXMSW__)
+	char exepath[2000];
+	strcpy(exepath, "Game.exe");
+	ShellExecute(NULL, "open", exepath, "", "", SW_SHOW);
+#elif defined(__UNIX__)
+	char cmd[2000];
+	sprintf(cmd, "wine '%s' &", "./Game.exe");
+	printf("执行命令：%s\n", cmd);
+	system(cmd);
+#endif
+}
+
 void RMupdaterFrame::SetStatus(wxString info)
 {
     m_statusBarInfo->SetStatusText(info);

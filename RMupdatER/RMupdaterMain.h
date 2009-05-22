@@ -47,6 +47,7 @@ class RMupdaterFrame: public FrameUpdater
         void OnCheck(wxCommandEvent& event);
         void OnUpdate(wxCommandEvent& event);
         void OnConfig(wxCommandEvent& event);
+        void OnStart(wxCommandEvent& event);
 
         void SetStatus(wxString info);
         void CheckNewest();
