@@ -51,7 +51,7 @@ RMupdaterConfig::RMupdaterConfig(wxFrame *frame, const wxString& title)
     : DialogConfig(frame, -1, title)
 {
 	config_t c = wxGetApp().GetConfig();
-	if (c.CheckInterval == 0) {
+	if (c.CheckInterval == 7) {
 		m_radioBoxUpdateInterval->SetSelection(0);
 	}
 	else {
@@ -69,16 +69,14 @@ void RMupdaterConfig::OnOK( wxCommandEvent& event )
 	config_t c = wxGetApp().GetConfig();
 
 	if (m_radioBoxUpdateInterval->GetSelection() == 0) {
-		c.CheckInterval = 0;
+		c.CheckInterval = 7;
 	}
 	else {
-		c.CheckInterval = 7;
+		c.CheckInterval = 0;
 	}
 
 	wxGetApp().SetConfig(c);
 	wxGetApp().SaveConfig();
 
 	EndModal(wxID_OK);
-
 }
-
