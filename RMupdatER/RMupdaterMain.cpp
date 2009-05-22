@@ -31,6 +31,25 @@ enum wxbuildinfoformat {
 
 DECLARE_APP(RMupdaterApp);
 
+// 真麻烦，还要自己实现一个大小写转换函数
+char* strtolower(const char* str){
+	register long len, i;
+	char* ret;
+
+	len = strlen(str);
+	ret = (char*)malloc(len + 1);
+
+	for (i = 0; i < len; i++) {
+		if (str[i] >= 'A' && str[i] <= 'Z') {
+			ret[i] = str[i] + 32;
+		}
+		else {
+			ret[i] = str[i];
+		}
+	}
+
+	return ret;
+}
 
 RMupdaterFrame::RMupdaterFrame(wxFrame *frame, const wxString& title)
     : FrameUpdater(frame, -1, title)
@@ -192,17 +211,18 @@ bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &RMupdaterFrame::curl_writefunction_downfile);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curl_in);
 	curl_easy_perform(curl);
-	curl_easy_cleanup(curl);
+	//curl_easy_cleanup(curl);
 
 	free(filename);
 	fclose(fp);
 
 	long http_code;
 	http_code = curl_in.http_code;
-	if (http_code != 200 && http_code != 206) {
+	if (http_code != 200 && http_code != 206 && http_code > 0 && http_code < 1024) {
+		//似乎CURL会返回诡异的和ttp_code，值是一个很大的负数，一次调试的时候打印出来的十六进制是bf8dd0f8
     	wxString info;
     	info.Printf(_T("下载文件时发生错误，HTTP错误代码：%ld"), http_code);
-    	printf("error downloading file: %ld, %s\n", http_code, url);
+    	printf("error downloading file: %x, %s\n", (unsigned int)http_code, url);
     	SetStatus(info);
     	return false;
     }
@@ -402,16 +422,21 @@ void RMupdaterFrame::ApplyUpdates()
 
 bool RMupdaterFrame::ApplyUpdateFile(const char* despath, void* content, long content_size)
 {
+	char* despath_lower;
 	printf("应用更新：%s\n", despath);
+
 	// 对于需要打包的文件和不需要打包的文件要分开处理
+	despath_lower = strtolower(despath);
 	if (
-		strstr(despath, "Data/") == despath ||
-		strstr(despath, "Graphics/") == despath
+		strstr(despath_lower, "data/") == despath_lower ||
+		strstr(despath_lower, "graphics/") == despath_lower
 	){
+		printf("--写入到rgss2a文件\n");
 		rg_write->WriteSubFile(despath, content, content_size);
 	}
 	else {
 		// 设置写文件句柄
+		printf("--写入到普通文件\n");
 		FILE* fp;
 		fp = fopen(despath, "wb");
 		if (fp == NULL) {
@@ -435,6 +460,7 @@ bool RMupdaterFrame::ApplyUpdateFile(const char* despath, void* content, long co
 		fclose(fp);
 	}
 
+	free(despath_lower);
 	return true;
 }
 
