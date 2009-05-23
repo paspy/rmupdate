@@ -12,6 +12,7 @@
 FrameUpdater::FrameUpdater( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+	this->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
 	
 	wxBoxSizer* bSizer2;
 	bSizer2 = new wxBoxSizer( wxVERTICAL );
@@ -79,6 +80,8 @@ FrameUpdater::FrameUpdater( wxWindow* parent, wxWindowID id, const wxString& tit
 	this->SetSizer( bSizer2 );
 	this->Layout();
 	m_statusBarInfo = this->CreateStatusBar( 1, wxST_SIZEGRIP, wxID_ANY );
+	m_statusBarInfo->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
+	
 	
 	// Connect Events
 	m_buttonCheck->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameUpdater::OnCheck ), NULL, this );
