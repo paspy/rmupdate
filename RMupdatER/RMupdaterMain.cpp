@@ -116,6 +116,7 @@ void RMupdaterFrame::OnUpdate(wxCommandEvent& event)
 		// 更改资源名，删除临时文件
 		CleanUpUpdate();
 		m_buttonStart->Enable(true);
+		m_statusBarInfo->SetStatusText(_T("更新完成"));
 	}
 }
 
@@ -141,17 +142,22 @@ bool RMupdaterFrame::DownloadUpdateFiles()
 
 		//首先检查文件是否已经存在
 		name_enc = encrypt_file_path(list.DesPath[i].mb_str());
+    #if defined(__WXMSW__)
+        sprintf(path, ".tmp\\%s.dat", name_enc);
+    #elif defined(__UNIX__)
 		sprintf(path, ".tmp/%s.dat", name_enc);
+    #endif
 		free(name_enc);
 
-		fp = fopen(path, "r");
+		fp = fopen(path, "rb");
 		printf("读取文件进行检查：%s\n", path);
 		if (!fp) {
+		    printf("--文件不存在，进行下载");
 			if (!DownloadUpdateFile(list, i)) return false;
 		}
 		else {
 			//如果文件存在，则检查文件是否是正确的文件
-			printf("文件已经存在，进行检查\n");
+			printf("--文件已经存在，进行检查\n");
 			void* buffer;
 			long buffer_size;
 			char md5str[33];
@@ -167,7 +173,7 @@ bool RMupdaterFrame::DownloadUpdateFiles()
 			//如果哈希值不符，则从重新下载改文件
 			char tmp[33];
 			strcpy(tmp, list.md5[i].mb_str());
-			printf("两个哈希值：%s\n%s\n", md5str, tmp);
+			printf("--两个哈希值：\n----%s\n----%s\n", md5str, tmp);
 			if (strcmp(md5str, list.md5[i].mb_str()) != 0) {
 				if (!DownloadUpdateFile(list, i)) return false;
 			}
@@ -412,11 +418,14 @@ void RMupdaterFrame::ApplyUpdates()
 	FILE* fp;
 
 	// 设置交互界面
+	wxString tipinfo;
+	tipinfo = _T("当前进度：正在用更新文件覆盖旧文件");
 	m_buttonStart->Enable(false);
 	m_gaugeTotal->SetValue(0);
 	m_gaugeCurrent->SetValue(0);
-	m_staticTextCurProc->SetLabel(_T("当前进度：正在用更新文件覆盖旧文件"));
-	m_staticTextCurProc->Update();
+	m_staticTextCurProc->SetLabel(tipinfo);
+	m_statusBarInfo->SetStatusText(tipinfo);
+	Update();
 
 	rg_write = new rgss2a;
 	rg_write->CreateRgss2aFile("Game.rgss2a.new");
@@ -534,7 +543,7 @@ void RMupdaterFrame::CleanUpUpdate()
 
 	// 删除临时文件目录
 #if defined(__WXMSW__)
-	WinExec("cmd.exe /C rmdir .tmp /Q /S", SW_SHOW);
+	WinExec("cmd.exe /C rmdir .tmp /Q /S", SW_HIDE);
 #elif defined(__UNIX__)
 	char cmd[] = "rm -rf '.tmp'";
 	printf("删除临时文件目录: %s\n", cmd);
