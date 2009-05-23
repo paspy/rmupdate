@@ -80,7 +80,10 @@ class RMupdateManagerApp : public wxApp
         long __mkdir_stack[100];    \
         long __mkdir_stack_p = 0;   \
         char __mkdir_buf[2048];     \
-        strcpy(__mkdir_buf, EXP);      \
+		if (EXP[1] != ':') 		\
+			sprintf(__mkdir_buf, ".\\%s", EXP);	\
+		else 	\
+			strcpy(__mkdir_buf, EXP);	\
         while (__mkdir_buf[++__mkdir_stack_p]) if (__mkdir_buf[__mkdir_stack_p] == '/') __mkdir_buf[__mkdir_stack_p] = '\\';  \
         __mkdir_stack_p = 0;    \
 		while (-1 == _access(__mkdir_buf, 0)) { \
