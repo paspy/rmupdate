@@ -534,7 +534,7 @@ void RMupdaterFrame::CleanUpUpdate()
 
 	// 删除临时文件目录
 #if defined(__WXMSW__)
-	_rmdir(".tmp");
+	WinExec("cmd.exe /C rmdir .tmp /Q /S", SW_SHOW);
 #elif defined(__UNIX__)
 	char cmd[] = "rm -rf '.tmp'";
 	printf("删除临时文件目录: %s\n", cmd);
