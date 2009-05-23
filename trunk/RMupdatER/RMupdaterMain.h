@@ -52,6 +52,7 @@ class RMupdaterFrame: public FrameUpdater
         void SetStatus(wxString info);
         void CheckNewest();
         void ApplyUpdates();
+        void CleanUpUpdate();
         static size_t curl_writefunction_check(void *ptr, size_t size, size_t nmemb, void *stream);
         static size_t curl_writefunction_downfile(void *ptr, size_t size, size_t nmemb, void *stream);
         void* DownloadUpdateList(long AbsVer, long SubAbsVer);

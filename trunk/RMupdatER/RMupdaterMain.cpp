@@ -110,7 +110,12 @@ void RMupdaterFrame::OnCheck(wxCommandEvent& event)
 void RMupdaterFrame::OnUpdate(wxCommandEvent& event)
 {
 	if (DownloadUpdateFiles()) {
+		// 更奔本地版本信息
 		wxGetApp().UpdateVersionInfo(ServerVer);
+
+		// 更改资源名，删除临时文件
+		CleanUpUpdate();
+		m_buttonStart->Enable(true);
 	}
 }
 
@@ -398,7 +403,7 @@ void* RMupdaterFrame::DownloadUpdateList(long AbsVer, long SubAbsVer)
 void RMupdaterFrame::ApplyUpdates()
 {
 	file_list_t list = wxGetApp().GetUpdateFileList();
-	unsigned long i;
+	unsigned long i, files_count;
 	char* enc_filename;
 	char filename[1024];
 	char filename_des[1024];
@@ -406,10 +411,28 @@ void RMupdaterFrame::ApplyUpdates()
 	long buffer_size;
 	FILE* fp;
 
+	// 设置交互界面
+	m_buttonStart->Enable(false);
+	m_gaugeTotal->SetValue(0);
+	m_gaugeCurrent->SetValue(0);
+	m_staticTextCurProc->SetLabel(_T("当前进度：正在用更新文件覆盖旧文件"));
+	m_staticTextCurProc->Update();
+
 	rg_write = new rgss2a;
 	rg_write->CreateRgss2aFile("Game.rgss2a.new");
 
-	for (i = 0; i < list.DesPath.GetCount(); i++) {
+	files_count = list.DesPath.GetCount();
+	for (i = 0; i < files_count; i++) {
+		long current_proc;
+
+		// 显示当前进度
+		current_proc = (i + 1) * 100 / files_count;
+		m_gaugeTotal->SetValue(current_proc);
+		m_gaugeCurrent->SetValue(current_proc);
+		m_gaugeTotal->Update();
+		m_gaugeCurrent->Update();
+
+		// 加密文件名
 		enc_filename = encrypt_file_path(list.DesPath[i].mb_str());
 		sprintf(filename, ".tmp/%s.dat", enc_filename);
 
@@ -489,6 +512,34 @@ bool RMupdaterFrame::ApplyUpdateFile(const char* despath, void* content, long co
 
 	free(despath_lower);
 	return true;
+}
+
+void RMupdaterFrame::CleanUpUpdate()
+{
+	char packname[100];
+
+	// 先处理打包的资源文件
+	// --删除原来的资源文件
+	if (remove("Game.rgss2a") == 0) {
+		strcpy(packname, "Game.rgss2a");
+	}
+	else {
+		remove("Game.rgssad");
+		strcpy(packname, "Game.rgssad");
+	}
+
+	// --将新的资源文件改名
+	printf("改名：Game.rgss2a.new --> %s\n", packname);
+	rename("Game.rgss2a.new", packname);
+
+	// 删除临时文件目录
+#if defined(__WXMSW__)
+	_rmdir(".tmp");
+#elif defined(__UNIX__)
+	char cmd[] = "rm -rf '.tmp'";
+	printf("删除临时文件目录: %s\n", cmd);
+	system(cmd);
+#endif
 }
 
 size_t RMupdaterFrame::curl_writefunction_check(void *ptr, size_t size, size_t nmemb, void *stream)
