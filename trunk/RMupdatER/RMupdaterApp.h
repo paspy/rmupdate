@@ -22,6 +22,13 @@ struct config_t{
 	wxString ServerPath;
 };
 
+struct version_t{
+	long AbsVer;
+	long SubAbsVer;
+	long UpdateTime;
+	wxString ReleaseName;
+};
+
 struct file_list_t{
 	wxArrayString DesPath;
 	wxArrayString md5;
@@ -46,7 +53,7 @@ class RMupdaterApp : public wxApp
         void SaveConfig();
         void LoadUpdateFileList(TiXmlHandle* hDoc, file_list_t& list);
         void CompareUpdateList(file_list_t& ServerList, file_list_t& LocalList);
-        void UpdateVersionInfo(config_t ver);	//更新本地配置文件的版本号
+        void UpdateVersionInfo(version_t& ver);	//更新本地配置文件的版本号
         file_list_t GetUpdateFileList();
 };
 

@@ -54,7 +54,13 @@ char* strtolower(const char* str){
 RMupdaterFrame::RMupdaterFrame(wxFrame *frame, const wxString& title)
     : FrameUpdater(frame, -1, title)
 {
-	LocalVer = wxGetApp().GetConfig();
+	// 设置本地版本信息
+	config_t c;
+	c =  wxGetApp().GetConfig();
+
+	LocalVer.AbsVer = c.AbsVer;
+	LocalVer.SubAbsVer = c.SubAbsVer;
+	LocalVer.UpdateTime = 0;
 }
 
 
@@ -116,7 +122,51 @@ void RMupdaterFrame::OnUpdate(wxCommandEvent& event)
 		// 更改资源名，删除临时文件
 		CleanUpUpdate();
 		m_buttonStart->Enable(true);
+		m_buttonUpdate->Enable(false);
+		m_buttonCheck->Enable(false);
 		m_statusBarInfo->SetStatusText(_T("更新完成"));
+	}
+}
+
+// 减少代码量的宏，用于在信息文本框上显示信息
+#define WRITE_INFOITEM(NAME, VALUE)	\
+	m_richTextInfo->BeginBold();	\
+	m_richTextInfo->WriteText(_T(NAME));	\
+	m_richTextInfo->EndBold();	\
+	m_richTextInfo->WriteText(VALUE);
+void RMupdaterFrame::RefreshUpdateInfo(version_t& ver)
+{
+
+	wxString info;
+	struct tm *ttime;
+	char timestr[100];
+	wchar_t timestru[300];
+
+	info.Printf(_T("%ld.%ld\n"), ver.AbsVer, ver.SubAbsVer);
+	WRITE_INFOITEM("当前版本号：", info);
+
+	info.Printf(_T("%ld.%ld\n"), LocalVer.AbsVer, LocalVer.SubAbsVer);
+	WRITE_INFOITEM("本地版本号：", info);
+
+	ttime = localtime(&ver.UpdateTime);
+	strftime(timestr, 100, "%Y年%m月%d日 %H时%M分%S秒", ttime);
+	setlocale(LC_ALL,".ACP");
+	mbstowcs(timestru, timestr, 300);
+	info.Printf(_T("%s"), timestru);
+	WRITE_INFOITEM("最新版本发布时间：", info);
+
+	wxColour color;
+	m_richTextInfo->Newline();m_richTextInfo->Newline();
+	m_richTextInfo->BeginBold();
+	if (ver.AbsVer == LocalVer.AbsVer && ver.SubAbsVer == LocalVer.SubAbsVer) {
+		color.Set(0, 128, 0);
+		m_richTextInfo->BeginTextColour(color);
+		m_richTextInfo->WriteText(_T("现在的版本已经是最新的了"));
+	}
+	else {
+		color.Set(255, 0, 0);
+		m_richTextInfo->BeginTextColour(color);
+		m_richTextInfo->WriteText(_T("有新版本可以更新"));
 	}
 }
 
@@ -325,7 +375,7 @@ void RMupdaterFrame::CheckNewest()
 			val = root.ChildElement("SubAbsVer", 0).ToElement()->GetText();
 			ServerVer.SubAbsVer = val ? atol(val) : 0;
 			val = root.ChildElement("UpdateTime", 0).ToElement()->GetText();
-			updatetime = val ? atol(val) : 0;
+			ServerVer.UpdateTime = updatetime = val ? atol(val) : 0;
     	}
 
     	// 更新最后检查更新的时间
@@ -337,18 +387,6 @@ void RMupdaterFrame::CheckNewest()
     	//检查更新情况
     	if (config.AbsVer != ServerVer.AbsVer || config.SubAbsVer != ServerVer.SubAbsVer) {
     		//有更新
-    		wxString info;
-			struct tm *ttime;
-			char timestr[100];
-			wchar_t timestru[300];
-			ttime = localtime(&updatetime);
-			strftime(timestr, 100, "%Y年%m月%d日 %H时%M分%S秒", ttime);
-			setlocale(LC_ALL,".ACP");
-			mbstowcs(timestru, timestr, 300);
-
-    		info.Printf(_T("发现新版本，发布时间是 %s"), timestru);
-    		SetStatus(info);
-
 			//下载更新列表文件
     		void* buf_newest;
     		void* buf_current;
@@ -416,15 +454,19 @@ void RMupdaterFrame::CheckNewest()
     		free(buf_current);
     		free(buf_newest);
 
+			wxString info;
     		wxGetApp().CompareUpdateList(ServerList, LocalList);
     		info.Printf(_T("需要更新%ld个文件"), wxGetApp().GetUpdateFileList().DesPath.GetCount());
     		m_statusBarInfo->SetStatusText(info);
+    		m_buttonUpdate->Enable(true);
     	}
     	else {
     		//没有更新
     		SetStatus(_T("已经是最新版本了"));
     		m_gaugeTotal->SetValue(100);
     	}
+
+    	RefreshUpdateInfo(ServerVer);
 	}
 }
 

@@ -40,6 +40,8 @@ FrameUpdater::FrameUpdater( wxWindow* parent, wxWindowID id, const wxString& tit
 	bSizer4->Add( m_buttonCheck, 0, wxALL, 5 );
 	
 	m_buttonUpdate = new wxButton( this, wxID_APPLY, wxT("更新"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_buttonUpdate->Enable( false );
+	
 	bSizer4->Add( m_buttonUpdate, 0, wxALL, 5 );
 	
 	m_buttonConfig = new wxButton( this, wxID_SETUP, wxT("设置"), wxDefaultPosition, wxDefaultSize, 0 );
