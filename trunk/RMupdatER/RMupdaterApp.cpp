@@ -23,8 +23,14 @@ IMPLEMENT_APP(RMupdaterApp);
 
 bool RMupdaterApp::OnInit()
 {
+#ifdef RMUPDATE_ENCRYPT_FILE
+	printf("RMupdater 加密版\n");
+#else
+	printf("RMupdater 普通版\n");
+#endif
+
 	if (!LoadConfig()) {
-		wxMessageDialog(NULL, _T("can not load config file: update.conf"), _T("error"), wxOK | wxICON_ERROR).ShowModal();
+		wxMessageDialog(NULL, _T("无法载入更新配置文件: update.conf"), _T("错误"), wxOK | wxICON_ERROR).ShowModal();
 		exit(1);
 	}
 
