@@ -39,8 +39,8 @@ class RMupdaterFrame: public FrameUpdater
 		rgss2a* rg_write;
 		rgss2a* rg_read;
 
-		config_t LocalVer;
-		config_t ServerVer;
+		version_t LocalVer;
+		version_t ServerVer;
 
         void OnClose(wxCloseEvent& event);
         void OnQuit(wxCommandEvent& event);
@@ -60,6 +60,7 @@ class RMupdaterFrame: public FrameUpdater
         bool DownloadUpdateFiles();
         bool DownloadUpdateFile(file_list_t& list, unsigned long i);
         bool ApplyUpdateFile(const char* despath, void* content, long content_size);
+        void RefreshUpdateInfo(version_t& ver);
 };
 
 

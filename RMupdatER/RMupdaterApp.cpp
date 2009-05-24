@@ -152,7 +152,7 @@ file_list_t RMupdaterApp::GetUpdateFileList()
 	return UpdateList;
 }
 
-void RMupdaterApp::UpdateVersionInfo(config_t ver)
+void RMupdaterApp::UpdateVersionInfo(version_t& ver)
 {
 	config_t c = GetConfig();
 	c.AbsVer = ver.AbsVer;
@@ -174,7 +174,6 @@ void RMupdaterApp::CompareUpdateList(file_list_t& ServerList, file_list_t& Local
 
 	// 遍历服务器文件列表，并在本地文件列表中查找匹配项，如果匹配失败则增加到需要更新的文件列表结构去
 	bool matched;
-	printf("ServerList=%lu, LocalList=%lu\n", ServerList.DesPath.GetCount(), LocalList.md5.GetCount());
 	for (i = 0; i < ServerList.DesPath.GetCount(); i++) {
 		matched = false;
 		for (k = 0; k < LocalList.DesPath.GetCount(); k++) {
