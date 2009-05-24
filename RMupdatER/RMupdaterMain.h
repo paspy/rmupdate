@@ -55,7 +55,7 @@ class RMupdaterFrame: public FrameUpdater
         void CleanUpUpdate();
         static size_t curl_writefunction_check(void *ptr, size_t size, size_t nmemb, void *stream);
         static size_t curl_writefunction_downfile(void *ptr, size_t size, size_t nmemb, void *stream);
-        void* DownloadUpdateList(long AbsVer, long SubAbsVer);
+        void* DownloadUpdateList(long AbsVer, long SubAbsVer, size_t& buf_size);
         void LoadUpdateList(TiXmlDocument* doc);
         bool DownloadUpdateFiles();
         bool DownloadUpdateFile(file_list_t& list, unsigned long i);

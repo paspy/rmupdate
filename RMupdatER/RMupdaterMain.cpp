@@ -54,7 +54,7 @@ char* strtolower(const char* str){
 RMupdaterFrame::RMupdaterFrame(wxFrame *frame, const wxString& title)
     : FrameUpdater(frame, -1, title)
 {
-    m_buttonUpdate->Enable(false);
+	LocalVer = wxGetApp().GetConfig();
 }
 
 
@@ -279,6 +279,9 @@ void RMupdaterFrame::CheckNewest()
     curl_easy_perform(curl);
     curl_easy_cleanup(curl);
 
+	pFrameUpdater->m_gaugeTotal->SetValue(33);
+	pFrameUpdater->m_gaugeTotal->Update();
+
     long http_code;
     http_code = curl_in.http_code;
     if (http_code != 200 && http_code != 206) {
@@ -348,10 +351,33 @@ void RMupdaterFrame::CheckNewest()
     		SetStatus(info);
 
 			//下载更新列表文件
-    		void* buf;
-    		buf = DownloadUpdateList(ServerVer.AbsVer, ServerVer.SubAbsVer);
+    		void* buf_newest;
+    		void* buf_current;
+    		size_t size_newest, size_current;
+
+			// 下载最新列表和当前列表，如果当前列表不存在则使用默认值
+    		buf_newest = DownloadUpdateList(ServerVer.AbsVer, ServerVer.SubAbsVer, size_newest);
+		#ifdef RMUPDATE_ENCRYPT_FILE
+			long tmplong;
+			decrypt_file_content(buf_newest, size_newest, tmplong);
+		#endif
+    		m_gaugeTotal->SetValue(66);
+    		m_gaugeTotal->Update();
+
+    		buf_current = DownloadUpdateList(LocalVer.AbsVer, LocalVer.SubAbsVer, size_current);
+    		if (buf_current == NULL) buf_current = DownloadUpdateList(0, 0, size_current);
+    		if (buf_current == NULL) {
+    			m_statusBarInfo->SetStatusText(_T("无法当前版本的列表文件"));
+    			return;
+    		}
+		#ifdef RMUPDATE_ENCRYPT_FILE
+			decrypt_file_content(buf_current, size_current, tmplong);
+		#endif
+    		m_gaugeTotal->SetValue(100);
+    		m_gaugeTotal->Update();
+
     		TiXmlDocument docl;
-    		docl.Parse((const char*)buf);
+    		docl.Parse((const char*)buf_newest);
     		if (docl.ErrorId() != 0) {
     			wxString TiErrInfo;
     			wxString ErrInfoL;
@@ -364,24 +390,32 @@ void RMupdaterFrame::CheckNewest()
     		wxGetApp().LoadUpdateFileList(hDocL);
 
     		m_buttonUpdate->Enable(true);
+
+    		//free(buf_current);
+    		//free(buf_newest);
     	}
     	else {
     		//没有更新
-    		SetStatus(_T("没有更新"));
+    		SetStatus(_T("已经是最新版本了"));
+    		m_gaugeTotal->SetValue(100);
     	}
 	}
 }
 
 
-void* RMupdaterFrame::DownloadUpdateList(long AbsVer, long SubAbsVer)
+void* RMupdaterFrame::DownloadUpdateList(long AbsVer, long SubAbsVer, size_t& buf_size)
 {
 	writefunction_in_t curl_in;
 	config_t config = wxGetApp().GetConfig();
 	char url[1024];
 	char ServerUrl[1024];
 	strcpy(ServerUrl, config.ServerPath.mb_str());
+#ifdef RMUPDATE_ENCRYPT_FILE
+	sprintf(url, "%s%ld.%ld.xml.dat", ServerUrl, AbsVer, SubAbsVer);
+#else
 	sprintf(url, "%s%ld.%ld.xml", ServerUrl, AbsVer, SubAbsVer);
-	printf("%s\n", url);
+#endif
+	printf("下载更新列表文件：%s\n", url);
 
 	CURL* curl = curl_easy_init();
 	curl_in.curl = curl;
@@ -403,6 +437,7 @@ void* RMupdaterFrame::DownloadUpdateList(long AbsVer, long SubAbsVer)
 		return NULL;
 	}
 
+	buf_size = curl_in.buffer_ptr;
 	return curl_in.buffer;
 }
 
@@ -546,8 +581,9 @@ void RMupdaterFrame::CleanUpUpdate()
 	WinExec("cmd.exe /C rmdir .tmp /Q /S", SW_HIDE);
 #elif defined(__UNIX__)
 	char cmd[] = "rm -rf '.tmp'";
-	printf("删除临时文件目录: %s\n", cmd);
+	printf("删除临时文件目录: %s", cmd);
 	system(cmd);
+	printf("\t删除完成\n");
 #endif
 }
 
@@ -566,7 +602,7 @@ size_t RMupdaterFrame::curl_writefunction_check(void *ptr, size_t size, size_t n
 
 	//初始化缓冲区
     if (in->buffer == NULL) {
-    	printf("init buffer for recive, malloc size=%lf\n", content_length + 1);
+    	printf("[curl_writefunction_check] init buffer for recive, malloc size=%lf\n", content_length + 1);
     	in->buffer = malloc(content_length + 1);
     	in->buffer_ptr = 0;
     }
@@ -578,9 +614,7 @@ size_t RMupdaterFrame::curl_writefunction_check(void *ptr, size_t size, size_t n
     info.Printf(_T("正在下载更新文件，共 %1$.0lf 字节，已经下载了 %2$ld 字节"), content_length, in->buffer_ptr);
     pFrameUpdater->SetStatus(info);
     pFrameUpdater->m_gaugeCurrent->SetValue(in->buffer_ptr * 100 / content_length);
-    pFrameUpdater->m_gaugeTotal->SetValue(in->buffer_ptr * 100 / content_length);
     pFrameUpdater->m_gaugeCurrent->Update();
-    pFrameUpdater->m_gaugeTotal->Update();
 
     return read_size;
 }
