@@ -239,6 +239,8 @@ void RMupdateManagerConfig::OnRelease(wxCommandEvent& event)
 	UpdateResourceFiles();
     SaveFilesList();
     UpdateUpdateFile();
+
+    m_statusBar->SetStatusText(_T("发布完成"));
 }
 
 void RMupdateManagerConfig::OnTextChange(wxCommandEvent& event)
@@ -358,7 +360,7 @@ bool RMupdateManagerConfig::LoadFile2List(fileinfo_t*& list, wxString SrcPath, w
         return false;
     }
 
-    this->SetStatus(wxString("正在载入文件：", wxConvLibc) + SrcPath);
+    this->SetStatus(wxString("正在检查文件：", wxConvLibc) + SrcPath);
     this->Refresh(false);
 
     #ifdef DEBUG
@@ -368,12 +370,19 @@ bool RMupdateManagerConfig::LoadFile2List(fileinfo_t*& list, wxString SrcPath, w
     strcpy(tmp, DesPath.mb_str());
     #endif
 
+	// 读取源文件的内容
     fseek(fp, 0, SEEK_END);
     size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
     buffer = malloc(size);
     fread(buffer, size, 1, fp);
     fclose(fp);
+
+#ifdef RMUPDATE_ENCRYPT_FILE
+	// 按照工程规范，这里应该是加密后的文件的哈希五
+	long tmplong;
+	encrypt_file_content(buffer, size, tmplong);
+#endif
     md5hash(buffer, size, md5);
     printf("%s\n", md5);
 
@@ -621,7 +630,29 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
     strcat(DirPath, "/release/res/");
 
     unsigned int i = 0;
-    for (i = 0; i < list->SrcPath.Count(); i++) {
+    for (i = 0; i < list->SrcPath.GetCount(); i++) {
+    	// 首先判断这个文件是否需要更新
+    	// 如果找到了一个哈希值和目标地址与这个文件相同的项，说明这个文件不需要更新
+		unsigned long k;
+		long matched;
+
+		m_statusBar->SetStatusText(_T("检查更新文件：") + list->DesPath[i]);
+		m_statusBar->Update();
+
+		matched = false;
+		for (k = 0; k < SrcFilesList->DesPath.GetCount(); k++) {
+			if (list->DesPath[i] == SrcFilesList->DesPath[k]) {
+			if (list->md5[i] == SrcFilesList->md5[k]) {
+				matched = true;
+				break;
+			}
+			}
+		}
+		if (matched) continue;
+
+		m_statusBar->SetStatusText(_T("正在写入更新文件：") + list->DesPath[i]);
+		m_statusBar->Update();
+
         //读取文件
         strcpy(FilePath, list->SrcPath[i].mb_str());
         fp = fopen(FilePath, "rb");
