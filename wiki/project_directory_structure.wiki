@@ -1,4 +1,4 @@
-#labels Phase-Design,Phase-Implementation,Phase-Support
+#labels Phase-Design,Phase-Implementation,Phase-Support,帮助,开发
 = 工程配置目录的目录结构说明 =
 
 == 目录结构 ==
