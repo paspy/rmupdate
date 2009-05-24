@@ -119,29 +119,29 @@ void RMupdaterApp::SaveConfig()
 	doc.SaveFile();
 }
 
-void RMupdaterApp::LoadUpdateFileList(TiXmlHandle& hDoc)
+void RMupdaterApp::LoadUpdateFileList(TiXmlHandle* hDoc, file_list_t& list)
 {
 	long i;
-	TiXmlHandle root = hDoc.ChildElement("update", 0);
+	TiXmlHandle root = hDoc->ChildElement("update", 0);
 	TiXmlHandle files = root.ChildElement("files", 0);
 
 	// 先清除原有的数据
-	UpdateList.DesPath.Clear();
-	UpdateList.md5.Clear();
-	UpdateList.size.Clear();
+	list.DesPath.Clear();
+	list.md5.Clear();
+	list.size.Clear();
 
 	// 从XML中载入数据
     i = 0;
     TiXmlHandle file = files.ChildElement("file", 0);
     while (file.ToElement()) {
-    	UpdateList.DesPath.Add(wxString(file.ToElement()->GetText(), wxConvLibc));
-    	UpdateList.md5.Add(wxString(file.ToElement()->Attribute("md5"), wxConvLibc));
+    	list.DesPath.Add(wxString(file.ToElement()->GetText(), wxConvLibc));
+    	list.md5.Add(wxString(file.ToElement()->Attribute("md5"), wxConvLibc));
     	const char* tsize = file.ToElement()->Attribute("size");
     	if (tsize != NULL) {
-    		UpdateList.size.Add(atol(tsize));
+    		list.size.Add(atol(tsize));
     	}
     	else {
-    		UpdateList.size.Add(0);
+    		list.size.Add(0);
     	}
     	file = files.ChildElement("file", ++i);
     }
@@ -161,4 +161,34 @@ void RMupdaterApp::UpdateVersionInfo(config_t ver)
 	printf("config set, absver=%ld, subabsver=%ld\n", ver.AbsVer, ver.SubAbsVer);
 	SaveConfig();
 	printf("更新文件保存了\n");
+}
+
+void RMupdaterApp::CompareUpdateList(file_list_t& ServerList, file_list_t& LocalList)
+{
+	unsigned long i, k;
+
+	// 首先清空当前更新列表
+	UpdateList.DesPath.Clear();
+	UpdateList.md5.Clear();
+	UpdateList.size.Clear();
+
+	// 遍历服务器文件列表，并在本地文件列表中查找匹配项，如果匹配失败则增加到需要更新的文件列表结构去
+	bool matched;
+	printf("ServerList=%lu, LocalList=%lu\n", ServerList.DesPath.GetCount(), LocalList.md5.GetCount());
+	for (i = 0; i < ServerList.DesPath.GetCount(); i++) {
+		matched = false;
+		for (k = 0; k < LocalList.DesPath.GetCount(); k++) {
+			if (ServerList.DesPath[i] == LocalList.DesPath[k]) {
+				if (ServerList.md5[i] == LocalList.md5[k]) matched = true;
+				break;
+			}
+		}
+
+		// 如果不匹配则需要更新
+		if (!matched) {
+			UpdateList.DesPath.Add(ServerList.DesPath[i]);
+			UpdateList.md5.Add(ServerList.md5[i]);
+			UpdateList.size.Add(ServerList.size[i]);
+		}
+	}
 }
