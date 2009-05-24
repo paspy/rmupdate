@@ -20,6 +20,8 @@
 #include "RMupdateManagerConfig.h"
 #include "ticpp/tinyxml.h"
 
+#include "lib/file_encrypt.h"
+
 IMPLEMENT_APP(RMupdateManagerApp);
 DECLARE_APP(RMupdateManagerApp);
 
@@ -166,7 +168,7 @@ bool RMupdateManagerApp::CreateProjConfig(const char* path)
     strcpy(ConfigPath, path);
     strcpy(Path00, path);
     strcat(ConfigPath, "/config.xml");
-    strcat(Path00, "/0.0.xml");
+    strcat(Path00, "/release/0.0.xml");
 
     sprintf(timestr, "%ld", time(NULL));
 
@@ -230,9 +232,31 @@ bool RMupdateManagerApp::CreateProjConfig(const char* path)
 
         doc->SaveFile();
 
+        // 将0.0.xml加密
+	#ifdef RMUPDATE_ENCRYPT_FILE
+        FILE* fp;
+        long buffer_size;
+        void* buffer;
+        fp = fopen(Path00, "rb");
+        fseek(fp, 0, SEEK_END);
+        buffer_size = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+
+        buffer = malloc(buffer_size);
+        fread(buffer, buffer_size, 1, fp);
+        fclose(fp);
+
+		long tmplong;
+		encrypt_file_content(buffer, buffer_size, tmplong);
+        strcat(Path00, ".dat");
+        fp = fopen(Path00, "wb");
+        fwrite(buffer, tmplong, 1, fp);
+        fclose(fp);
+        free(buffer);
+	#endif
     }
     catch (int e) {
-        wxMessageDialog(NULL, _T("无法创建配置文件"), _T("错误"),wxOK | wxICON_EXCLAMATION).ShowModal();
+        wxMessageDialog(NULL, _T("无法初始化配置文件目录"), _T("错误"),wxOK | wxICON_EXCLAMATION).ShowModal();
         return false;
     }
 

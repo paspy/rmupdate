@@ -129,14 +129,7 @@ void RMupdateManagerConfig::OnQuit(wxCommandEvent &event)
 
 void RMupdateManagerConfig::SetStatus(wxString info)
 {
-    char timestr[100];
-    time_t tt;
-    struct tm* ttime;
-
-    time(&tt);
-    ttime = localtime(&tt);
-    strftime(timestr, 100, "\t%H时%M分%S秒", ttime);
-    this->m_statusBar->SetStatusText(info + wxString(timestr, wxConvLibc));
+	m_statusBar->SetStatusText(info);
 }
 
 void RMupdateManagerConfig::OnAddDir(wxCommandEvent& event)
