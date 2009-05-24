@@ -298,7 +298,6 @@ void RMupdaterFrame::CheckNewest()
 		long updatetime;
 
     	doc.Parse((const char*)curl_in.buffer);
-    	printf("xml=%s\n", (const char*)curl_in.buffer);
 		free(curl_in.buffer);
     	if (doc.ErrorId() != 0) {
     		// 如果载入XML更新信息文件出错
@@ -376,23 +375,50 @@ void RMupdaterFrame::CheckNewest()
     		m_gaugeTotal->SetValue(100);
     		m_gaugeTotal->Update();
 
-    		TiXmlDocument docl;
-    		docl.Parse((const char*)buf_newest);
-    		if (docl.ErrorId() != 0) {
-    			wxString TiErrInfo;
-    			wxString ErrInfoL;
-    			TiErrInfo = wxString(docl.ErrorDesc(), wxConvLibc);
+			// 载入文件列表
+    		TiXmlDocument* docl;
+    		TiXmlHandle* hDocL;
+    		wxString TiErrInfo;
+			wxString ErrInfoL;
+			file_list_t ServerList;
+			file_list_t LocalList;
+
+			// --载入服务器最新列表
+			docl = new TiXmlDocument;
+    		docl->Parse((const char*)buf_newest);
+    		if (docl->ErrorId() != 0) {
+    			TiErrInfo = wxString(docl->ErrorDesc(), wxConvLibc);
     			ErrInfoL.Printf(_T("载入更新文件列表时发生错误：") + TiErrInfo);
     			wxMessageDialog(NULL, ErrInfoL, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
     			return;
     		}
-    		TiXmlHandle hDocL(&docl);
-    		wxGetApp().LoadUpdateFileList(hDocL);
+    		hDocL = new TiXmlHandle(docl);
+    		wxGetApp().LoadUpdateFileList(hDocL, ServerList);
 
-    		m_buttonUpdate->Enable(true);
+    		delete hDocL;
+    		delete docl;
 
-    		//free(buf_current);
-    		//free(buf_newest);
+			// --载入当前版本列表
+			docl = new TiXmlDocument;
+    		docl->Parse((const char*)buf_current);
+    		if (docl->ErrorId() != 0) {
+    			TiErrInfo = wxString(docl->ErrorDesc(), wxConvLibc);
+    			ErrInfoL.Printf(_T("载入当前版本文件列表时发生错误：") + TiErrInfo);
+    			wxMessageDialog(NULL, ErrInfoL, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
+    			return;
+    		}
+    		hDocL = new TiXmlHandle(docl);
+    		wxGetApp().LoadUpdateFileList(hDocL, LocalList);
+
+			delete hDocL;
+			delete docl;
+
+    		free(buf_current);
+    		free(buf_newest);
+
+    		wxGetApp().CompareUpdateList(ServerList, LocalList);
+    		info.Printf(_T("需要更新%ld个文件"), wxGetApp().GetUpdateFileList().DesPath.GetCount());
+    		m_statusBarInfo->SetStatusText(info);
     	}
     	else {
     		//没有更新

@@ -44,7 +44,8 @@ class RMupdaterApp : public wxApp
         config_t GetConfig();
         void SetConfig(config_t c);
         void SaveConfig();
-        void LoadUpdateFileList(TiXmlHandle& hDoc);
+        void LoadUpdateFileList(TiXmlHandle* hDoc, file_list_t& list);
+        void CompareUpdateList(file_list_t& ServerList, file_list_t& LocalList);
         void UpdateVersionInfo(config_t ver);	//更新本地配置文件的版本号
         file_list_t GetUpdateFileList();
 };
