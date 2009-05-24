@@ -25,6 +25,12 @@ DECLARE_APP(RMupdateManagerApp);
 
 bool RMupdateManagerApp::OnInit()
 {
+#ifdef RMUPDATE_ENCRYPT_FILE
+	printf("RMupdateManager 加密版\n");
+#else
+	printf("RMupdateManager 普通版\n");
+#endif
+
     RMupdateManagerFrame* frameProject = new RMupdateManagerFrame(0L);
     frameProject->Show();
 

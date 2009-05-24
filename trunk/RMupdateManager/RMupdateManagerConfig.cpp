@@ -21,9 +21,8 @@
 #include "lib/md5.h"
 #include "ticpp/tinyxml.h"
 
-#ifdef RMUPDATE_ENCRYPT_FILE
 #include "lib/file_encrypt.h"
-#endif
+
 
 
 DECLARE_APP(RMupdateManagerApp);
@@ -514,7 +513,7 @@ bool RMupdateManagerConfig::SaveFilesList()
 
     doc->SaveFile();
 
-    #ifdef RMUPDATE_ENCRYPT_FILE
+#ifdef RMUPDATE_ENCRYPT_FILE
     //生成加密的更新文件列表
     FILE* fp;
     void* buffer;
@@ -541,7 +540,7 @@ bool RMupdateManagerConfig::SaveFilesList()
         fwrite(buffer, buffer_size, 1, fp);
         fclose(fp);
     }
-    #endif
+#endif
 
     return true;
 }
@@ -555,7 +554,7 @@ bool RMupdateManagerConfig::UpdateUpdateFile()
     strcpy(path, proj.ProjPath.mb_str());
     strcat(path, "/release/update.xml");
 
-    fp = fopen(path, "w");
+    fp = fopen(path, "wb");
     #if defined(__UNIX__)
     if (!fp) {
         char CDirPath[1024];
@@ -564,7 +563,7 @@ bool RMupdateManagerConfig::UpdateUpdateFile()
         CDirPath[strrchr(path, '/') - path] = 0;
         printf("错误：创建文件失败，试图创建目录：%s\n", path);
         MKDIR(CDirPath);
-        fp = fopen(path, "w");
+        fp = fopen(path, "wb");
     }
     #endif
     if (!fp) {
@@ -643,9 +642,8 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
             fclose(fp);
         }
 
-        //加密文件
-    #ifdef RMUPDATE_ENCRYPT_FILE
-        // 加密文件名
+        //     加密文件名。按照工程规范，不管是不是加密工程，文件名都以MD5值出现。
+        // 如果是加密版本，则由encrypt_file_path自动加上加密密钥然后计算MD5
         char tmppath[1024];
         char* md5;
         strcpy(tmppath, list->DesPath[i].mb_str());
@@ -655,15 +653,14 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
         strcat(FilePath, ".dat");
         free(md5);
 
+    #ifdef RMUPDATE_ENCRYPT_FILE
         // 加密文件内容。。！这里的内存没有处理好，按照加密函数中的定义，应该删除传入的buffer，而加密内容的指针是encrypt_file_content的返回值
         long tmplong;
         encrypt_file_content(buffer, buffer_size, tmplong);
-    #else
-        strcpy(FilePath, DirPath);
-        strcat(FilePath, list->DesPath[i].mb_str());
     #endif
 
         //写入文件
+        printf("写入更新资源文件：%s\n", FilePath);
         fp = fopen(FilePath, "wb");
         if (!fp) {
             char CDirPath[1024];
