@@ -166,7 +166,13 @@ void RMupdaterFrame::RefreshUpdateInfo(version_t& ver)
 	else {
 		color.Set(255, 0, 0);
 		m_richTextInfo->BeginTextColour(color);
-		m_richTextInfo->WriteText(_T("有新版本可以更新"));
+		m_richTextInfo->WriteText(_T("有新版本可以更新："));
+		m_richTextInfo->EndTextColour();
+		m_richTextInfo->EndBold();
+
+		color.Set(0, 0, 255);
+		m_richTextInfo->BeginTextColour(color);
+		m_richTextInfo->WriteText(ServerVer.ReleaseName);
 	}
 }
 
@@ -369,7 +375,7 @@ void RMupdaterFrame::CheckNewest()
     		const char* val;
 
 			strcpy(tmp, root.ChildElement("version", 0).ToElement()->GetText());
-			version = wxString(tmp, wxConvLibc);
+			version = ServerVer.ReleaseName = wxString(tmp, wxConvLibc);
 			val = root.ChildElement("AbsVer", 0).ToElement()->GetText();
 			ServerVer.AbsVer = val ? atol(val) : 0;
 			val = root.ChildElement("SubAbsVer", 0).ToElement()->GetText();
