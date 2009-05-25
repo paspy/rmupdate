@@ -54,6 +54,9 @@ char* strtolower(const char* str){
 RMupdaterFrame::RMupdaterFrame(wxFrame *frame, const wxString& title)
     : FrameUpdater(frame, -1, title)
 {
+	// 设置图标
+	SetIcon(wxGetApp().icon);
+
 	// 设置本地版本信息
 	config_t c;
 	c =  wxGetApp().GetConfig();
@@ -343,7 +346,7 @@ void RMupdaterFrame::CheckNewest()
     if (http_code != 200 && http_code != 206) {
     	wxString info;
     	info.Printf(_T("下载更新文件时发生错误，HTTP错误代码：%ld"), http_code);
-    	wxMessageDialog(NULL, info, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
+    	wxMessageDialog((wxWindow*)this, info, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
     	m_buttonCheck->Enable(true);
     	SetStatus(info);
     	return;
@@ -361,7 +364,7 @@ void RMupdaterFrame::CheckNewest()
     		wxString errinfo;
     		errinfo = wxString(doc.ErrorDesc(), wxConvLibc);
     		info.Printf(_T("加载更新文件时发生错误：TiXmlError: ") + errinfo );
-    		wxMessageDialog(NULL, info, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
+    		wxMessageDialog((wxWindow*)this, info, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
     		m_buttonCheck->Enable(true);
     		SetStatus(info);
     		return;
@@ -433,7 +436,7 @@ void RMupdaterFrame::CheckNewest()
     		if (docl->ErrorId() != 0) {
     			TiErrInfo = wxString(docl->ErrorDesc(), wxConvLibc);
     			ErrInfoL.Printf(_T("载入更新文件列表时发生错误：") + TiErrInfo);
-    			wxMessageDialog(NULL, ErrInfoL, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
+    			wxMessageDialog((wxWindow*)this, ErrInfoL, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
     			return;
     		}
     		hDocL = new TiXmlHandle(docl);
@@ -448,7 +451,7 @@ void RMupdaterFrame::CheckNewest()
     		if (docl->ErrorId() != 0) {
     			TiErrInfo = wxString(docl->ErrorDesc(), wxConvLibc);
     			ErrInfoL.Printf(_T("载入当前版本文件列表时发生错误：") + TiErrInfo);
-    			wxMessageDialog(NULL, ErrInfoL, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
+    			wxMessageDialog((wxWindow*)this, ErrInfoL, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
     			return;
     		}
     		hDocL = new TiXmlHandle(docl);
@@ -506,7 +509,7 @@ void* RMupdaterFrame::DownloadUpdateList(long AbsVer, long SubAbsVer, size_t& bu
 	if (http_code != 200 && http_code != 206) {
 		wxString info;
 		info.Printf(_T("下载更新列表文件时发生错误，HTTP错误代码：%ld"), http_code);
-		wxMessageDialog(NULL, info, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
+		wxMessageDialog((wxWindow*)this, info, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
 		SetStatus(info);
 		return NULL;
 	}
@@ -558,7 +561,7 @@ void RMupdaterFrame::ApplyUpdates()
 		fp = fopen(filename, "r");
 		if (!fp) {
 			printf("无法打开文件：%s\n", filename);
-			wxMessageDialog(NULL, _T("无法打开文件：") + wxString(filename, wxConvLibc), _T("应用更新时发生错误"), wxICON_EXCLAMATION | wxID_OK).ShowModal();
+			wxMessageDialog((wxWindow*)this, _T("无法打开文件：") + wxString(filename, wxConvLibc), _T("应用更新时发生错误"), wxICON_EXCLAMATION | wxID_OK).ShowModal();
 			m_statusBarInfo->SetStatusText(_T("应用更新失败"));
 			return;
 		}
@@ -617,7 +620,7 @@ bool RMupdaterFrame::ApplyUpdateFile(const char* despath, void* content, long co
 
 		if (fp == NULL) {
 			printf("无法打开文件进行写入：%s\n", despath);
-			wxMessageDialog(NULL, _T("无法以写模式打开文件：") + wxString(despath, wxConvLibc), _T("应用更新时发生错误"), wxICON_EXCLAMATION | wxID_OK).ShowModal();
+			wxMessageDialog((wxWindow*)this, _T("无法以写模式打开文件：") + wxString(despath, wxConvLibc), _T("应用更新时发生错误"), wxICON_EXCLAMATION | wxID_OK).ShowModal();
 			fclose(fp);
 			return false;
 		}

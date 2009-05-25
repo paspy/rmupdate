@@ -20,7 +20,7 @@ FrameUpdater::FrameUpdater( wxWindow* parent, wxWindowID id, const wxString& tit
 	wxBoxSizer* bSizer9;
 	bSizer9 = new wxBoxSizer( wxHORIZONTAL );
 	
-	m_bitmapLogo = new wxStaticBitmap( this, wxID_ANY, wxBitmap( wxT("resource/logo.bmp"), wxBITMAP_TYPE_ANY ), wxDefaultPosition, wxDefaultSize, 0 );
+	m_bitmapLogo = new wxStaticBitmap( this, wxID_ANY, wxBitmap( wxT("icon.png"), wxBITMAP_TYPE_ANY ), wxDefaultPosition, wxDefaultSize, 0 );
 	bSizer9->Add( m_bitmapLogo, 0, wxALL|wxALIGN_CENTER_VERTICAL, 10 );
 	
 	m_richTextInfo = new wxRichTextCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0|wxVSCROLL|wxHSCROLL|wxNO_BORDER|wxWANTS_CHARS );
