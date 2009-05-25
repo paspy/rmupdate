@@ -55,6 +55,8 @@ class RMupdaterApp : public wxApp
         void CompareUpdateList(file_list_t& ServerList, file_list_t& LocalList);
         void UpdateVersionInfo(version_t& ver);	//更新本地配置文件的版本号
         file_list_t GetUpdateFileList();
+
+        wxIcon icon;
 };
 
 #define pFrameUpdater ((RMupdaterFrame*)wxGetApp().frame)

@@ -29,13 +29,18 @@ bool RMupdaterApp::OnInit()
 	printf("RMupdater 普通版\n");
 #endif
 
+	// 载入程序图标
+	wxInitAllImageHandlers();
+	wxBitmap bitmap(_T("icon.png"), wxBITMAP_TYPE_PNG);
+	icon.CopyFromBitmap(bitmap);
+
+	// 载入配置文件
 	if (!LoadConfig()) {
-		wxMessageDialog(NULL, _T("无法载入更新配置文件: update.conf"), _T("错误"), wxOK | wxICON_ERROR).ShowModal();
+		wxMessageDialog((wxWindow*)this, _T("无法载入更新配置文件: update.conf"), _T("错误"), wxOK | wxICON_ERROR).ShowModal();
 		exit(1);
 	}
 
     frame = new RMupdaterFrame(0L, _T("frame title"));
-
     frame->Show();
 
     return true;
