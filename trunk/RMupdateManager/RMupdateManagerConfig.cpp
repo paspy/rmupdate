@@ -155,6 +155,13 @@ void RMupdateManagerConfig::OnAddDir(wxCommandEvent& event)
     this->m_gridMapping->SetCellValue(cnt, 2, _T("目录"));
     m_gridMapping->SetCellTextColour(cnt, 2, *wxBLUE);
 
+    // 保存到工程属性
+    proj_info_t proj;
+    proj = wxGetApp().GetProjInfo();
+	proj.MappingDirs.SrcPath.Add(SrcPath);
+	proj.MappingDirs.DesPath.Add(DesPath);
+	wxGetApp().SetProjInfo(proj);
+
     this->MappingChanged = true;
     this->m_buttonCheckUpdate->Enable(true);
 
@@ -184,6 +191,14 @@ void RMupdateManagerConfig::OnAddFile(wxCommandEvent& event)
     m_gridMapping->SetCellTextColour(cnt, 2, *wxGREEN);
     m_gridMapping->SetReadOnly(cnt, 0, true);
     m_gridMapping->SetReadOnly(cnt, 2, true);
+
+    // 设置到工程属性
+    proj_info_t proj;
+    proj = wxGetApp().GetProjInfo();
+	proj.MappingFiles.SrcPath.Add(SrcPath);
+	proj.MappingFiles.DesPath.Add(DesPath);
+	wxGetApp().SetProjInfo(proj);
+
 
     this->MappingChanged = true;
     this->m_buttonCheckUpdate->Enable(true);
@@ -217,30 +232,7 @@ void RMupdateManagerConfig::OnCheckUpdate(wxCommandEvent& event)
 
 void RMupdateManagerConfig::OnRelease(wxCommandEvent& event)
 {
-    proj_info_t proj = wxGetApp().GetProjInfo();
-
-    //m_buttonRelease->Enable(false);
-
-    proj.MappingDirs.SrcPath.Clear();
-    proj.MappingDirs.DesPath.Clear();
-    proj.MappingFiles.SrcPath.Clear();
-    proj.MappingFiles.DesPath.Clear();
-
-    //设置目录映射
-    int i;
-    for (i = 0; i < m_gridMapping->GetNumberRows(); i++) {
-        if (m_gridMapping->GetCellValue(i, 2) == _T("目录")) {
-            proj.MappingDirs.SrcPath.Add(m_gridMapping->GetCellValue(i, 0));
-            proj.MappingDirs.DesPath.Add(m_gridMapping->GetCellValue(i, 1));
-        }
-        else {
-            proj.MappingFiles.SrcPath.Add(m_gridMapping->GetCellValue(i, 0));
-            proj.MappingFiles.DesPath.Add(m_gridMapping->GetCellValue(i, 1));
-        }
-    }
-
-    wxGetApp().SetProjInfo(proj);
-    wxGetApp().SaveProject();
+	wxGetApp().SaveProject();
 
 	UpdateResourceFiles();
     SaveFilesList();
@@ -615,7 +607,6 @@ void RMupdateManagerConfig::OnDelete(wxCommandEvent& event)
     wxGetApp().SetProjInfo(proj);
 
     m_gridMapping->DeleteRows(rows[0], 1, true);
-    m_buttonDelete->Enable(false);
 }
 
 

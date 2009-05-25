@@ -50,6 +50,8 @@ class FrameProject : public wxFrame
 		virtual void OnOpenProj( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnSaveProj( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnQuit( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnOnlineHelp( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnAbout( wxCommandEvent& event ){ event.Skip(); }
 		
 	
 	public:
