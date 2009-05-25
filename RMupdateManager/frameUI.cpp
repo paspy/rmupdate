@@ -34,7 +34,7 @@ FrameProject::FrameProject( wxWindow* parent, wxWindowID id, const wxString& tit
 	m_menuItemQuit = new wxMenuItem( m_menuFile, wxID_EXIT, wxString( wxT("退出(&Q)\tAlt+F4") ) , wxEmptyString, wxITEM_NORMAL );
 	m_menuFile->Append( m_menuItemQuit );
 	
-	m_menubar1->Append( m_menuFile, wxT("文件") );
+	m_menubar1->Append( m_menuFile, wxT("文件(&F)") );
 	
 	m_menuHelp = new wxMenu();
 	wxMenuItem* m_menuItemOnlineHelp;
@@ -45,7 +45,7 @@ FrameProject::FrameProject( wxWindow* parent, wxWindowID id, const wxString& tit
 	m_menuItemAbout = new wxMenuItem( m_menuHelp, wxID_ABOUT, wxString( wxT("关于(&A)") ) , wxEmptyString, wxITEM_NORMAL );
 	m_menuHelp->Append( m_menuItemAbout );
 	
-	m_menubar1->Append( m_menuHelp, wxT("帮助") );
+	m_menubar1->Append( m_menuHelp, wxT("帮助(&H)") );
 	
 	this->SetMenuBar( m_menubar1 );
 	
@@ -64,6 +64,8 @@ FrameProject::FrameProject( wxWindow* parent, wxWindowID id, const wxString& tit
 	this->Connect( m_menuItemOpenProject->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( FrameProject::OnOpenProj ) );
 	this->Connect( m_menuItemSaveProject->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( FrameProject::OnSaveProj ) );
 	this->Connect( m_menuItemQuit->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( FrameProject::OnQuit ) );
+	this->Connect( m_menuItemOnlineHelp->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( FrameProject::OnOnlineHelp ) );
+	this->Connect( m_menuItemAbout->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( FrameProject::OnAbout ) );
 }
 
 FrameProject::~FrameProject()
@@ -73,6 +75,8 @@ FrameProject::~FrameProject()
 	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( FrameProject::OnOpenProj ) );
 	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( FrameProject::OnSaveProj ) );
 	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( FrameProject::OnQuit ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( FrameProject::OnOnlineHelp ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( FrameProject::OnAbout ) );
 }
 
 FrameConfig::FrameConfig( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
