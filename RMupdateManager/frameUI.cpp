@@ -152,8 +152,6 @@ FrameConfig::FrameConfig( wxWindow* parent, wxWindowID id, const wxString& title
 	gSizer2->Add( m_buttonAddDir, 0, wxALL, 5 );
 	
 	m_buttonDelete = new wxButton( this, wxID_DELETE, wxT("删除"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_buttonDelete->Enable( false );
-	
 	gSizer2->Add( m_buttonDelete, 0, wxALL, 5 );
 	
 	m_buttonCheckUpdate = new wxButton( this, wxID_CHECK, wxT("检查更新"), wxDefaultPosition, wxDefaultSize, 0 );
