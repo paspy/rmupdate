@@ -12,6 +12,7 @@
 FrameProject::FrameProject( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+	this->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
 	
 	m_menubar1 = new wxMenuBar( 0 );
 	m_menuFile = new wxMenu();
@@ -77,6 +78,7 @@ FrameProject::~FrameProject()
 FrameConfig::FrameConfig( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+	this->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
 	
 	wxBoxSizer* bSizer7;
 	bSizer7 = new wxBoxSizer( wxVERTICAL );
@@ -150,12 +152,17 @@ FrameConfig::FrameConfig( wxWindow* parent, wxWindowID id, const wxString& title
 	gSizer2->Add( m_buttonAddDir, 0, wxALL, 5 );
 	
 	m_buttonDelete = new wxButton( this, wxID_DELETE, wxT("删除"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_buttonDelete->Enable( false );
+	
 	gSizer2->Add( m_buttonDelete, 0, wxALL, 5 );
 	
 	m_buttonCheckUpdate = new wxButton( this, wxID_CHECK, wxT("检查更新"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_buttonCheckUpdate->SetDefault(); 
 	gSizer2->Add( m_buttonCheckUpdate, 0, wxALL, 5 );
 	
 	m_buttonRelease = new wxButton( this, wxID_RELEASE, wxT("保存并发布"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_buttonRelease->Enable( false );
+	
 	gSizer2->Add( m_buttonRelease, 0, wxALL, 5 );
 	
 	bSizer9->Add( gSizer2, 1, wxEXPAND, 5 );
