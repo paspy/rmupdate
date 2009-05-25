@@ -190,23 +190,26 @@ void RMupdateManagerConfig::OnAddFile(wxCommandEvent& event)
 
 void RMupdateManagerConfig::OnCheckUpdate(wxCommandEvent& event)
 {
+	m_buttonCheckUpdate->Enable(false);
+
     LoadFilesList();
-    /*
-    char abc[1024];
-    sprintf(abc, "%d", SrcFilesList->md5.Count());
-    */
+
     long UpdateNum = CompareFilesList(SrcFilesList, DesFilesList);
     if (UpdateNum > 0) {
-        m_buttonRelease->Enable(true);
         char info[100];
         sprintf(info, "共有%ld个文件更新", UpdateNum);
         SetStatus(wxString(info, wxConvLibc));
+
+        m_buttonRelease->Enable(true);
     }
     else {
         SetStatus(_T("没有更新"));
     }
 
-    //m_buttonCheckUpdate->Enable(false);
+	// 先砍掉所以更新过程中挂起的事件
+	while (wxGetApp().Pending()) wxGetApp().Dispatch();
+
+    m_buttonCheckUpdate->Enable(true);
 }
 
 void RMupdateManagerConfig::OnRelease(wxCommandEvent& event)
@@ -241,6 +244,7 @@ void RMupdateManagerConfig::OnRelease(wxCommandEvent& event)
     UpdateUpdateFile();
 
     m_statusBar->SetStatusText(_T("发布完成"));
+    m_buttonRelease->Enable(false);
 }
 
 void RMupdateManagerConfig::OnTextChange(wxCommandEvent& event)
@@ -361,7 +365,7 @@ bool RMupdateManagerConfig::LoadFile2List(fileinfo_t*& list, wxString SrcPath, w
     }
 
     this->SetStatus(wxString("正在检查文件：", wxConvLibc) + SrcPath);
-    this->Refresh(false);
+    Update();
 
     #ifdef DEBUG
     char tmp[1024];
@@ -399,10 +403,6 @@ bool RMupdateManagerConfig::LoadFile2List(fileinfo_t*& list, wxString SrcPath, w
 WX_DEFINE_ARRAY_CHAR(char, char_a);
 long RMupdateManagerConfig::CompareFilesList(fileinfo_t*& src, fileinfo_t*& des)
 {
-    /*struct exist_flag_t{
-        wxArrayString md5;
-        char_a exist;
-    } ExistFlag;*/
     long UnflagSrcNum = src->md5.Count();
     long UnflagDesNum = des->md5.Count();
     long ModifiedNum = 0;
@@ -612,6 +612,7 @@ void RMupdateManagerConfig::OnDelete(wxCommandEvent& event)
     wxGetApp().SetProjInfo(proj);
 
     m_gridMapping->DeleteRows(rows[0], 1, true);
+    m_buttonDelete->Enable(false);
 }
 
 
