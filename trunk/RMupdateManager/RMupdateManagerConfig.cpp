@@ -107,8 +107,7 @@ RMupdateManagerConfig::RMupdateManagerConfig(wxFrame *frame)
         j++;
     }
 
-    m_gridMapping->AutoSizeColumns(true);
-
+    m_gridMapping->Fit();
 }
 
 RMupdateManagerConfig::~RMupdateManagerConfig()
@@ -427,9 +426,9 @@ long RMupdateManagerConfig::CompareFilesList(fileinfo_t*& src, fileinfo_t*& des)
             char srcmd5[33];
             char desmd5[33];
             strcpy(srcmd5, src->md5[k].mb_str());
-            strcpy(desmd5, des->md5[k].mb_str());
+            strcpy(desmd5, des->md5[i].mb_str());
             printf("srcmd5=%s, desmd5=%s\n", srcmd5, desmd5);
-            if (src->md5[k] != des->md5[k]) ModifiedNum++;
+            if (src->md5[k] != des->md5[i]) ModifiedNum++;
         }
     }
 
