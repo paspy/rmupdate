@@ -89,6 +89,7 @@ RMupdateManagerConfig::RMupdateManagerConfig(wxFrame *frame)
         this->m_gridMapping->SetCellValue(j, 0, SrcPath[i]);
         this->m_gridMapping->SetCellValue(j, 1, DesPath[i]);
         this->m_gridMapping->SetCellValue(j, 2, _T("目录"));
+        m_gridMapping->SetCellTextColour(j, 2, *wxBLUE);
         m_gridMapping->SetReadOnly(j, 0, true);
         m_gridMapping->SetReadOnly(j, 2, true);
         j++;
@@ -102,6 +103,7 @@ RMupdateManagerConfig::RMupdateManagerConfig(wxFrame *frame)
         this->m_gridMapping->SetCellValue(j, 0, SrcPath[i]);
         this->m_gridMapping->SetCellValue(j, 1, DesPath[i]);
         this->m_gridMapping->SetCellValue(j, 2, _T("文件"));
+        m_gridMapping->SetCellTextColour(j, 2, *wxGREEN);
         m_gridMapping->SetReadOnly(j, 0, true);
         m_gridMapping->SetReadOnly(j, 2, true);
         j++;
@@ -151,6 +153,7 @@ void RMupdateManagerConfig::OnAddDir(wxCommandEvent& event)
     this->m_gridMapping->SetCellValue(cnt, 0, SrcPath);
     this->m_gridMapping->SetCellValue(cnt, 1, DesPath);
     this->m_gridMapping->SetCellValue(cnt, 2, _T("目录"));
+    m_gridMapping->SetCellTextColour(cnt, 2, *wxBLUE);
 
     this->MappingChanged = true;
     this->m_buttonCheckUpdate->Enable(true);
@@ -178,6 +181,7 @@ void RMupdateManagerConfig::OnAddFile(wxCommandEvent& event)
     this->m_gridMapping->SetCellValue(cnt, 0, SrcPath);
     this->m_gridMapping->SetCellValue(cnt, 1, DesPath);
     this->m_gridMapping->SetCellValue(cnt, 2, _T("文件"));
+    m_gridMapping->SetCellTextColour(cnt, 2, *wxGREEN);
     m_gridMapping->SetReadOnly(cnt, 0, true);
     m_gridMapping->SetReadOnly(cnt, 2, true);
 
