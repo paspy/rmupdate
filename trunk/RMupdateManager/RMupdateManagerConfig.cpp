@@ -65,6 +65,7 @@ RMupdateManagerConfig::RMupdateManagerConfig(wxFrame *frame)
     this->DesFilesList = new fileinfo_t;
 
     //设置界面
+    SetIcon(wxGetApp().icon);
     this->m_gridMapping->SetColLabelValue(0, _T("源"));
     this->m_gridMapping->SetColLabelValue(1, _T("目的"));
     this->m_gridMapping->SetColLabelValue(2, _T("类型"));
@@ -575,7 +576,7 @@ bool RMupdateManagerConfig::UpdateUpdateFile()
     }
     #endif
     if (!fp) {
-        wxMessageDialog(NULL, _T("无法写入更新文件"), _T("错误"));
+        wxMessageDialog((wxWindow*)this, _T("无法写入更新文件"), _T("错误"));
         return false;
     }
 

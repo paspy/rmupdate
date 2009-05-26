@@ -17,6 +17,7 @@
 #include <wx/dirdlg.h>
 #include <wx/msgdlg.h>
 #include <wx/fileconf.h>
+#include <wx/icon.h>
 
 struct mapping_dirs_t{
     wxArrayString SrcPath;
@@ -61,8 +62,9 @@ class RMupdateManagerApp : public wxApp
         bool CreateProj();
         bool LoadProjConfig(const char* path);
         bool SaveProject();
-
+		wxIcon icon;
 		wxFileConfig* profile;
+
     private:
         proj_info_t ProjInfo;
 
