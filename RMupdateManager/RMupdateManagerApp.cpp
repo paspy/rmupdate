@@ -11,6 +11,8 @@
 #include "wx_pch.h"
 #endif
 
+#include <wx/wfstream.h>
+
 #ifdef __BORLANDC__
 #pragma hdrstop
 #endif //__BORLANDC__
@@ -25,6 +27,11 @@
 IMPLEMENT_APP(RMupdateManagerApp);
 DECLARE_APP(RMupdateManagerApp);
 
+RMupdateManagerApp::~RMupdateManagerApp()
+{
+	SaveUserProfile();
+}
+
 bool RMupdateManagerApp::OnInit()
 {
 #ifdef RMUPDATE_ENCRYPT_FILE
@@ -32,6 +39,9 @@ bool RMupdateManagerApp::OnInit()
 #else
 	printf("RMupdateManager 普通版\n");
 #endif
+
+	// 读取用户配置数据
+	ReadUserProfile();
 
     RMupdateManagerFrame* frameProject = new RMupdateManagerFrame(0L);
     frameProject->Show();
@@ -41,13 +51,21 @@ bool RMupdateManagerApp::OnInit()
 
 bool RMupdateManagerApp::OpenProj()
 {
-//    wxFileDialog dlg(NULL, wxT("Choose a video file"), wxT(""), wxT(""), wxT("Video files (*.avi,*.mkv,*.ogg,*.mpg,*.mpeg,*.rm,*.rmvb)|*.*|All files|*.*"), wxOPEN | wxFILE_MUST_EXIST);
-    wxDirDialog dlg(NULL);
+	wxString SelPath;
 
-    if (dlg.ShowModal() != wxID_OK) return false;
+	profile->Read(wxT("/LastSelectedDir/Project"), &SelPath);
+    wxDirDialog dlg(NULL, _T("请选择工程目录"), SelPath);
+
+    if (dlg.ShowModal() != wxID_OK) {
+    	return false;
+    }
+    else {
+    	SelPath = dlg.GetPath();
+    	profile->Write(wxT("/LastSelectedDir/Project"), SelPath);
+    }
 
     char ConfigPath[2056];
-    strcpy(ConfigPath, dlg.GetPath().mb_str());
+    strcpy(ConfigPath, SelPath.mb_str());
 	printf("%s\n", ConfigPath);
 	strcat(ConfigPath, "/config.xml");
 	if (!this->LoadProjConfig(ConfigPath)) {
@@ -131,14 +149,23 @@ proj_info_t RMupdateManagerApp::GetProjInfo()
 
 bool RMupdateManagerApp::CreateProj()
 {
-    //选择文件夹
-    wxDirDialog dlg(NULL);
+	wxString SelPath;
 
-    if (dlg.ShowModal() != wxID_OK) return false;
+    //选择文件夹
+    profile->Read(wxT("/LastSelectedDir/Project"), &SelPath);
+    wxDirDialog dlg(NULL, _T("请选择一个空目录作为工程目录"), SelPath);
+
+    if (dlg.ShowModal() != wxID_OK) {
+    	return false;
+    }
+    else {
+    	SelPath = dlg.GetPath();
+    	profile->Write(wxT("/LastSelectedDir/Project"), SelPath);
+    }
 
     char ConfigFile[2048];
     char ConfigDir[2048];
-    strcpy(ConfigDir, dlg.GetPath().mb_str());
+    strcpy(ConfigDir, SelPath.mb_str());
 
     //检查是否已经存在一个工程
     FILE* fp;
@@ -367,4 +394,50 @@ long RMupdateManagerApp::GetDateStamp()
 {
     long SplitStamp = time(NULL) - DATESTAMP_ZERO;
     return SplitStamp / 86400;
+}
+
+void RMupdateManagerApp::ReadUserProfile()
+{
+	wxString ProfilePath = GetUserProfilePath();
+
+	// 如果文件不存在则创建文件
+	char homepath[1024];
+	strcpy(homepath, ProfilePath.mb_str());
+	FILE* fp = fopen(homepath, "rb");
+	if (fp == NULL) {
+		printf("用户配置文件不存在，试图创建：%s\n", homepath);
+		fp = fopen(homepath, "wb");
+		fclose(fp);
+	}
+	else {
+		fclose(fp);
+	}
+
+	wxFFileInputStream ProfileStream(ProfilePath);
+	profile = new wxFileConfig(ProfileStream);
+}
+
+bool RMupdateManagerApp::SaveUserProfile()
+{
+	wxString ProfilePath = GetUserProfilePath();
+
+	wxFFileOutputStream ProfileStream(ProfilePath);
+	return profile->Save(ProfileStream);
+}
+
+wxString RMupdateManagerApp::GetUserProfilePath()
+{
+	wxString ProfilePath;
+
+#if defined(__WXMSW__)
+	ProfilePath = "profile.conf"
+#elif defined(__UNIX__)
+	char homepath[1024];
+	sprintf(homepath, "%s/.rmupdate", getenv("HOME"));
+	MKDIR(homepath);
+	strcat(homepath, "/manager.profile");
+	ProfilePath = wxString(homepath, wxConvLibc);
+#endif
+
+	return ProfilePath;
 }

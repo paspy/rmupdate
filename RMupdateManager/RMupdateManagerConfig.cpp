@@ -137,14 +137,17 @@ void RMupdateManagerConfig::OnAddDir(wxCommandEvent& event)
 {
     wxString SrcPath;
     wxString DesPath;
+    wxFileConfig* profile = wxGetApp().profile;
 
     //选择源路径
-    wxDirDialog dlg(NULL);
+    profile->Read(wxT("/LastSelectedDir/MappingDir"), &SrcPath);
+    wxDirDialog dlg((wxWindow*)this, _T("选择需要增加的目录"), SrcPath);
     if (dlg.ShowModal() != wxID_OK) {
         return;
     }
     else {
         SrcPath = dlg.GetPath();
+		profile->Write(wxT("/LastSelectedDir/MappingDir"), SrcPath);
     }
 
     //添加到列表
@@ -172,14 +175,22 @@ void RMupdateManagerConfig::OnAddFile(wxCommandEvent& event)
 {
     wxString SrcPath;
     wxString DesPath;
+    wxFileConfig* profile = wxGetApp().profile;
 
     //选择源路径
-    wxFileDialog dlg(NULL);
+    profile->Read(wxT("/LastSelectedDir/MappingFile"), &SrcPath);
+    wxFileDialog dlg((wxWindow*)this, _T("选择需要增加的文件"), SrcPath);
     if (dlg.ShowModal() != wxID_OK) {
         return;
     }
     else {
         SrcPath = dlg.GetPath();
+	#if defined(__WXMSW__)
+		wxChar slash('\\');
+	#else
+		wxChar slash('/');
+	#endif
+        profile->Write(wxT("/LastSelectedDir/MappingFile"), SrcPath.BeforeLast(slash));
     }
 
     //添加到列表
