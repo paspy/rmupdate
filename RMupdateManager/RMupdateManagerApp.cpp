@@ -78,8 +78,8 @@ bool RMupdateManagerApp::OpenProj()
 
 bool RMupdateManagerApp::LoadProjConfig(const char* path)
 {
-    TiXmlDocument dom(path);
-    if (!dom.LoadFile()) return false;
+    TiXmlDocument dom;
+    if (!dom.LoadFile(path, TIXML_ENCODING_UTF8)) return false;
 
     TiXmlHandle hDoc(&dom);
     TiXmlHandle root = hDoc.ChildElement("project", 0);
@@ -430,7 +430,7 @@ wxString RMupdateManagerApp::GetUserProfilePath()
 	wxString ProfilePath;
 
 #if defined(__WXMSW__)
-	ProfilePath = "profile.conf"
+	ProfilePath = wxString("profile.conf", wxConvLibc);
 #elif defined(__UNIX__)
 	char homepath[1024];
 	sprintf(homepath, "%s/.rmupdate", getenv("HOME"));
