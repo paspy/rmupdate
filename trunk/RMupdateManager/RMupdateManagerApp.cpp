@@ -201,17 +201,21 @@ bool RMupdateManagerApp::CreateProjConfig(const char* path)
 
     //创建XML文件
     try {
+        wxString NodeText;
+
         TiXmlDocument* doc = new TiXmlDocument(ConfigPath);
 
         TiXmlElement* root = new TiXmlElement("project");
         doc->LinkEndChild(root);
 
         TiXmlElement* name = new TiXmlElement("name");
-        name->LinkEndChild(new TiXmlText("未命名"));
+        NodeText = _T("未命名");
+        name->LinkEndChild(new TiXmlText(NodeText.mb_str()));
         root->LinkEndChild(name);
 
         TiXmlElement* version = new TiXmlElement("version");
-        version->LinkEndChild(new TiXmlText("初始版本"));
+        NodeText = _T("初始版本");
+        version->LinkEndChild(new TiXmlText(NodeText.mb_str()));
         root->LinkEndChild(version);
 
         TiXmlElement* AbsVer;
