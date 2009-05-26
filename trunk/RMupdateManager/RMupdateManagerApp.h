@@ -16,6 +16,7 @@
 #include <wx/app.h>
 #include <wx/dirdlg.h>
 #include <wx/msgdlg.h>
+#include <wx/fileconf.h>
 
 struct mapping_dirs_t{
     wxArrayString SrcPath;
@@ -52,6 +53,7 @@ class RMupdateManagerApp : public wxApp
     public:
 
         virtual bool OnInit();
+        ~RMupdateManagerApp();
 
         proj_info_t GetProjInfo();
         bool SetProjInfo(proj_info_t proj);
@@ -60,13 +62,15 @@ class RMupdateManagerApp : public wxApp
         bool LoadProjConfig(const char* path);
         bool SaveProject();
 
+		wxFileConfig* profile;
     private:
         proj_info_t ProjInfo;
 
         bool CreateProjConfig(const char* path);
         long GetDateStamp();
-
-
+        void ReadUserProfile();
+        bool SaveUserProfile();
+        wxString GetUserProfilePath();
 };
 
 #endif // RMUPDATEMANAGERAPP_H
