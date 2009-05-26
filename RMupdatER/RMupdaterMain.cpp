@@ -403,6 +403,7 @@ void RMupdaterFrame::CheckNewest()
 
 			// 下载最新列表和当前列表，如果当前列表不存在则使用默认值
     		buf_newest = DownloadUpdateList(ServerVer.AbsVer, ServerVer.SubAbsVer, size_newest);
+    		if (buf_newest == NULL) return;
 		#ifdef RMUPDATE_ENCRYPT_FILE
 			long tmplong;
 			decrypt_file_content(buf_newest, size_newest, tmplong);

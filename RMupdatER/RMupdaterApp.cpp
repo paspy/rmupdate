@@ -40,7 +40,7 @@ bool RMupdaterApp::OnInit()
 		exit(1);
 	}
 
-    frame = new RMupdaterFrame(0L, _T("frame title"));
+    frame = new RMupdaterFrame(0L, _T("RMupdater"));
     frame->Show();
 
     return true;
