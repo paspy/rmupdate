@@ -51,7 +51,7 @@ enum wxbuildinfoformat {
 RMupdateManagerFrame::RMupdateManagerFrame(wxFrame *frame)
     : FrameProject(frame)
 {
-
+	SetIcon(wxGetApp().icon);
 }
 
 RMupdateManagerFrame::~RMupdateManagerFrame()

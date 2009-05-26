@@ -43,6 +43,11 @@ bool RMupdateManagerApp::OnInit()
 	// 读取用户配置数据
 	ReadUserProfile();
 
+	// 设置应用程序图标
+	wxInitAllImageHandlers();
+	wxBitmap bitmap(wxT("icon.png"), wxBITMAP_TYPE_PNG);
+	icon.CopyFromBitmap(bitmap);
+
     RMupdateManagerFrame* frameProject = new RMupdateManagerFrame(0L);
     frameProject->Show();
 
