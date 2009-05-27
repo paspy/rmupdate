@@ -44,7 +44,9 @@ RMupdateManagerConfig::RMupdateManagerConfig(wxFrame *frame)
     this->DesFilesList = new fileinfo_t;
 
     //设置界面
+#ifndef __WXMSW__
     SetIcon(wxGetApp().icon);
+#endif
     this->m_gridMapping->SetColLabelValue(0, _T("源"));
     this->m_gridMapping->SetColLabelValue(1, _T("目的"));
     this->m_gridMapping->SetColLabelValue(2, _T("类型"));
