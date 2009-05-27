@@ -50,10 +50,14 @@ bool RMupdateManagerApp::OnInit()
 	// 读取用户配置数据
 	ReadUserProfile();
 
-	// 设置应用程序图标
-	wxInitAllImageHandlers();
-	wxBitmap bitmap(wxT("icon.png"), wxBITMAP_TYPE_PNG);
-	icon.CopyFromBitmap(bitmap);
+    // 设置应用程序图标
+    wxInitAllImageHandlers();
+#if defined(__WXMSW__)
+    icon = wxIcon(_T("aAppIcon"));
+#else
+    wxBitmap bitmap(wxT("icon.png"), wxBITMAP_TYPE_PNG);
+    icon.CopyFromBitmap(bitmap);
+#endif
 
     frameProject = new RMupdateManagerFrame(0L);
     frameProject->Show();
@@ -91,7 +95,7 @@ bool RMupdateManagerApp::OpenProj()
 bool RMupdateManagerApp::LoadProjConfig(const char* path)
 {
     TiXmlDocument dom;
-    if (!dom.LoadFile(path, TIXML_ENCODING_UTF8)) return false;
+    if (!dom.LoadFile(path, TIXML_ENCODING_UNKNOWN)) return false;
 
     TiXmlHandle hDoc(&dom);
     TiXmlHandle root = hDoc.ChildElement("project", 0);
