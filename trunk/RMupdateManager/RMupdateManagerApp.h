@@ -123,7 +123,7 @@ class RMupdateManagerApp : public wxApp
 	#define OPENLINK(URL)	\
 		{ char cmd[4096];	\
 		sprintf(cmd, "cmd.exe /C start %s", URL);	\
-		WinExec(cmd); }
+		WinExec(cmd, SW_HIDE); }
 #elif defined(__UNIX__)
 	#define OPENLINK(URL)	\
 		{ char cmd[4096];	\
