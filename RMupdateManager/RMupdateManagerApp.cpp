@@ -27,6 +27,13 @@
 IMPLEMENT_APP(RMupdateManagerApp);
 DECLARE_APP(RMupdateManagerApp);
 
+RMupdateManagerFrame* frameProject;
+
+RMupdateManagerApp::RMupdateManagerApp()
+{
+	ProjInfo.modified = false;
+}
+
 RMupdateManagerApp::~RMupdateManagerApp()
 {
 	SaveUserProfile();
@@ -48,7 +55,7 @@ bool RMupdateManagerApp::OnInit()
 	wxBitmap bitmap(wxT("icon.png"), wxBITMAP_TYPE_PNG);
 	icon.CopyFromBitmap(bitmap);
 
-    RMupdateManagerFrame* frameProject = new RMupdateManagerFrame(0L);
+    frameProject = new RMupdateManagerFrame(0L);
     frameProject->Show();
 
     return true;
@@ -119,6 +126,7 @@ bool RMupdateManagerApp::LoadProjConfig(const char* path)
     #endif
 
     ProjInfo.ProjPath = wxString(path, wxConvLibc).Before(slash);
+    ProjModified(false);
 
     //载入映射目录和文件表，当然先删除现有的列表
     this->ProjInfo.MappingDirs.SrcPath.Clear();
@@ -303,11 +311,12 @@ bool RMupdateManagerApp::CreateProjConfig(const char* path)
     proj.version = _T("默认版本");
     proj.AbsVer = proj.SubAbsVer = 0;
     this->SetProjInfo(proj);
+    ProjModified(true);
 
     return true;
 }
 
-bool RMupdateManagerApp::SetProjInfo(proj_info_t proj)
+bool RMupdateManagerApp::SetProjInfo(proj_info_t& proj)
 {
     ProjInfo = proj;
     return true;
@@ -390,6 +399,9 @@ bool RMupdateManagerApp::SaveProject()
         }
 
         doc->SaveFile();
+
+        ProjModified(false);
+        frameProject->RefreshProjInfo();
     }
     catch (int e) {
         wxMessageDialog(NULL, _T("保存工程失败"), _T("错误")).ShowModal();
@@ -449,4 +461,35 @@ wxString RMupdateManagerApp::GetUserProfilePath()
 #endif
 
 	return ProfilePath;
+}
+
+void RMupdateManagerApp::ProjModified(bool isModified)
+{
+	proj_info_t p;
+	p = GetProjInfo();
+printf("isModified set to %x\n", isModified);
+	if (p.modified != isModified) {
+		p.modified = isModified;
+		SetProjInfo(p);
+	}
+}
+
+bool RMupdateManagerApp::GetProjModified()
+{
+	return GetProjInfo().modified;
+}
+
+void RMupdateManagerApp::TryQuit()
+{
+	if (GetProjModified()) {
+		printf("modified\n");
+		if (wxMessageDialog(NULL, _("工程还没有保存，确定要退出？"), _("工程未保存"), wxOK | wxCANCEL | wxICON_QUESTION).ShowModal() == wxID_OK) {
+			printf("modified and exit(0)\n");
+			exit(0);
+		}
+	}
+	else {
+		printf("exit(0) directory\n");
+		exit(0);
+	}
 }

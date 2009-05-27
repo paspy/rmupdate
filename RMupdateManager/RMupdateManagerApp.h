@@ -46,6 +46,7 @@ struct proj_info_t{
     long AbsVer;
     long SubAbsVer;
     long UpdateTime;
+    bool modified;	//自上次保存工程或打开工程以来，工程是否被修改过了的标记
 };
 
 
@@ -54,14 +55,19 @@ class RMupdateManagerApp : public wxApp
     public:
 
         virtual bool OnInit();
+        RMupdateManagerApp();
         ~RMupdateManagerApp();
 
+		void TryQuit();
         proj_info_t GetProjInfo();
-        bool SetProjInfo(proj_info_t proj);
+        bool SetProjInfo(proj_info_t& proj);
         bool OpenProj();
         bool CreateProj();
         bool LoadProjConfig(const char* path);
         bool SaveProject();
+        void ProjModified(bool isModified);
+        bool GetProjModified();
+
 		wxIcon icon;
 		wxFileConfig* profile;
 

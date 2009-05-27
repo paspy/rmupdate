@@ -16,6 +16,7 @@
 #endif //__BORLANDC__
 
 #include "RMupdateManagerConfig.h"
+#include "RMupdateManagerMain.h"
 #include <wx/dir.h>
 #include <wx/file.h>
 #include "lib/md5.h"
@@ -23,7 +24,7 @@
 
 #include "lib/file_encrypt.h"
 
-
+extern RMupdateManagerFrame* frameProject;
 
 DECLARE_APP(RMupdateManagerApp);
 
@@ -111,6 +112,8 @@ RMupdateManagerConfig::RMupdateManagerConfig(wxFrame *frame)
     }
 
     m_gridMapping->Fit();
+    wxGetApp().ProjModified(false);
+    frameProject->RefreshProjInfo();
 }
 
 RMupdateManagerConfig::~RMupdateManagerConfig()
@@ -121,12 +124,12 @@ RMupdateManagerConfig::~RMupdateManagerConfig()
 
 void RMupdateManagerConfig::OnClose(wxCloseEvent &event)
 {
-    Destroy();
+    wxGetApp().TryQuit();
 }
 
 void RMupdateManagerConfig::OnQuit(wxCommandEvent &event)
 {
-    Destroy();
+    wxGetApp().TryQuit();
 }
 
 void RMupdateManagerConfig::SetStatus(wxString info)
@@ -165,6 +168,8 @@ void RMupdateManagerConfig::OnAddDir(wxCommandEvent& event)
 	proj.MappingDirs.SrcPath.Add(SrcPath);
 	proj.MappingDirs.DesPath.Add(DesPath);
 	wxGetApp().SetProjInfo(proj);
+	wxGetApp().ProjModified(true);
+	frameProject->RefreshProjInfo();
 
     this->MappingChanged = true;
     this->m_buttonCheckUpdate->Enable(true);
@@ -210,7 +215,8 @@ void RMupdateManagerConfig::OnAddFile(wxCommandEvent& event)
 	proj.MappingFiles.SrcPath.Add(SrcPath);
 	proj.MappingFiles.DesPath.Add(DesPath);
 	wxGetApp().SetProjInfo(proj);
-
+	wxGetApp().ProjModified(true);
+	frameProject->RefreshProjInfo();
 
     this->MappingChanged = true;
     this->m_buttonCheckUpdate->Enable(true);
@@ -262,6 +268,8 @@ void RMupdateManagerConfig::OnTextChange(wxCommandEvent& event)
     if (m_textCtrlVersion->GetValue() != wxT("")) proj.version = m_textCtrlVersion->GetValue();
 
     wxGetApp().SetProjInfo(proj);
+    wxGetApp().ProjModified(true);
+    frameProject->RefreshProjInfo();
 }
 
 bool RMupdateManagerConfig::LoadFilesList()

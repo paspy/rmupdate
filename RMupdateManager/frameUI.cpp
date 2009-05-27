@@ -60,6 +60,7 @@ FrameProject::FrameProject( wxWindow* parent, wxWindowID id, const wxString& tit
 	this->Layout();
 	
 	// Connect Events
+	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( FrameProject::OnClose ) );
 	this->Connect( m_menuItemCreateProject->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( FrameProject::OnCreateProj ) );
 	this->Connect( m_menuItemOpenProject->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( FrameProject::OnOpenProj ) );
 	this->Connect( m_menuItemSaveProject->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( FrameProject::OnSaveProj ) );
@@ -71,6 +72,7 @@ FrameProject::FrameProject( wxWindow* parent, wxWindowID id, const wxString& tit
 FrameProject::~FrameProject()
 {
 	// Disconnect Events
+	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( FrameProject::OnClose ) );
 	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( FrameProject::OnCreateProj ) );
 	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( FrameProject::OnOpenProj ) );
 	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( FrameProject::OnSaveProj ) );
@@ -176,6 +178,7 @@ FrameConfig::FrameConfig( wxWindow* parent, wxWindowID id, const wxString& title
 	m_statusBar = this->CreateStatusBar( 1, wxST_SIZEGRIP, wxID_ANY );
 	
 	// Connect Events
+	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( FrameConfig::OnClose ) );
 	m_textCtrlProjName->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( FrameConfig::OnTextChange ), NULL, this );
 	m_textCtrlVersion->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( FrameConfig::OnTextChange ), NULL, this );
 	m_gridMapping->Connect( wxEVT_GRID_CELL_CHANGE, wxGridEventHandler( FrameConfig::OnGridCellChange ), NULL, this );
@@ -189,6 +192,7 @@ FrameConfig::FrameConfig( wxWindow* parent, wxWindowID id, const wxString& title
 FrameConfig::~FrameConfig()
 {
 	// Disconnect Events
+	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( FrameConfig::OnClose ) );
 	m_textCtrlProjName->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( FrameConfig::OnTextChange ), NULL, this );
 	m_textCtrlVersion->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( FrameConfig::OnTextChange ), NULL, this );
 	m_gridMapping->Disconnect( wxEVT_GRID_CELL_CHANGE, wxGridEventHandler( FrameConfig::OnGridCellChange ), NULL, this );
