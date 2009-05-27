@@ -120,6 +120,8 @@ class DialogAbout : public wxDialog
 		wxHyperlinkCtrl* m_hyperlink1;
 		wxPanel* m_panelCredits;
 		wxRichTextCtrl* m_richTextCredits;
+		wxPanel* m_panel3;
+		wxTextCtrl* m_textCtrl3;
 		wxButton* m_buttonOK;
 		
 		// Virtual event handlers, overide them in your derived class
@@ -127,7 +129,7 @@ class DialogAbout : public wxDialog
 		
 	
 	public:
-		DialogAbout( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("关于"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 330,317 ), long style = wxDEFAULT_DIALOG_STYLE );
+		DialogAbout( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("关于"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 330,330 ), long style = wxDEFAULT_DIALOG_STYLE );
 		~DialogAbout();
 	
 };

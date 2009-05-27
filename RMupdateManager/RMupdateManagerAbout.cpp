@@ -47,7 +47,7 @@ DECLARE_APP(RMupdateManagerApp);
 	m_richTextCredits->EndBold();	\
 	m_richTextCredits->AppendText(_T("\n"));
 
-#define PERSON(CITY, NAME, EMAIL)	\
+#define PERSON(CITY, NAME, EMAIL) {	\
 	m_richTextCredits->BeginTextColour(wxColor(128, 128, 128));	\
 	m_richTextCredits->AppendText(_T(CITY));	\
 	m_richTextCredits->AppendText(_T(" "));	\
@@ -56,10 +56,16 @@ DECLARE_APP(RMupdateManagerApp);
 	m_richTextCredits->AppendText(_T(NAME));	\
 	\
 	m_richTextCredits->AppendText(_T(" <"));	\
+	wxString URL = wxString("mailto:", wxConvLibc) + _T(EMAIL);	\
+	m_richTextCredits->BeginURL(URL);	\
 	m_richTextCredits->BeginTextColour(wxColor(64, 64, 255));	\
+	m_richTextCredits->BeginUnderline();	\
 	m_richTextCredits->AppendText(_T(EMAIL));	\
+	m_richTextCredits->EndUnderline();	\
 	m_richTextCredits->EndTextColour();	\
+	m_richTextCredits->EndURL();	\
 	m_richTextCredits->AppendText(_T(">\n"));	\
+}
 
 #define EMPTYLINE()	\
 	m_richTextCredits->AppendText(_T("\n"));
