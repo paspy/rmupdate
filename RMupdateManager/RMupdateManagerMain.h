@@ -27,6 +27,7 @@ class RMupdateManagerFrame: public FrameProject
     private:
         virtual void OnClose(wxCloseEvent& event);
         virtual void OnQuit(wxCommandEvent& event);
+        virtual void OnOnlineHelp(wxCommandEvent& event);
         virtual void OnAbout(wxCommandEvent& event);
         virtual void OnCreateProj( wxCommandEvent& event );
 		virtual void OnOpenProj( wxCommandEvent& event );
