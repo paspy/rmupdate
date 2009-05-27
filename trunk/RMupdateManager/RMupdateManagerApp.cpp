@@ -481,7 +481,7 @@ bool RMupdateManagerApp::GetProjModified()
 void RMupdateManagerApp::TryQuit()
 {
 	if (GetProjModified()) {
-		if (wxMessageDialog(NULL, _("工程还没有保存，确定要退出？"), _("工程未保存"), wxOK | wxCANCEL | wxICON_QUESTION).ShowModal() == wxID_OK) {
+		if (wxMessageDialog((wxWindow*)frameProject, _("工程还没有保存，确定要退出？"), _("工程未保存"), wxOK | wxCANCEL | wxICON_QUESTION).ShowModal() == wxID_OK) {
 			exit(0);
 		}
 	}
