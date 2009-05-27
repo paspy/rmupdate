@@ -46,6 +46,7 @@ class FrameProject : public wxFrame
 		wxStaticText* m_staticTextProjInfo;
 		
 		// Virtual event handlers, overide them in your derived class
+		virtual void OnClose( wxCloseEvent& event ){ event.Skip(); }
 		virtual void OnCreateProj( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnOpenProj( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnSaveProj( wxCommandEvent& event ){ event.Skip(); }
@@ -81,6 +82,7 @@ class FrameConfig : public wxFrame
 		wxStatusBar* m_statusBar;
 		
 		// Virtual event handlers, overide them in your derived class
+		virtual void OnClose( wxCloseEvent& event ){ event.Skip(); }
 		virtual void OnTextChange( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnGridCellChange( wxGridEvent& event ){ event.Skip(); }
 		virtual void OnAddFile( wxCommandEvent& event ){ event.Skip(); }
