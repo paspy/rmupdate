@@ -24,6 +24,11 @@
 #include <wx/grid.h>
 #include <wx/button.h>
 #include <wx/statusbr.h>
+#include <wx/hyperlink.h>
+#include <wx/panel.h>
+#include <wx/richtext/richtextctrl.h>
+#include <wx/notebook.h>
+#include <wx/dialog.h>
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -95,6 +100,35 @@ class FrameConfig : public wxFrame
 	public:
 		FrameConfig( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("工程管理"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 497,342 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~FrameConfig();
+	
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class DialogAbout
+///////////////////////////////////////////////////////////////////////////////
+class DialogAbout : public wxDialog 
+{
+	private:
+	
+	protected:
+		wxStaticText* m_staticText4;
+		wxStaticText* m_staticText5;
+		wxNotebook* m_notebookInfo;
+		wxPanel* m_panelInfo;
+		wxStaticText* m_staticText7;
+		wxStaticText* m_staticText6;
+		wxHyperlinkCtrl* m_hyperlink1;
+		wxPanel* m_panelCredits;
+		wxRichTextCtrl* m_richTextCredits;
+		wxButton* m_buttonOK;
+		
+		// Virtual event handlers, overide them in your derived class
+		virtual void OnQuit( wxCommandEvent& event ){ event.Skip(); }
+		
+	
+	public:
+		DialogAbout( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("关于"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 330,317 ), long style = wxDEFAULT_DIALOG_STYLE );
+		~DialogAbout();
 	
 };
 
