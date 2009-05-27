@@ -15,6 +15,7 @@
 #pragma hdrstop
 #endif //__BORLANDC__
 
+#include "RMupdateManagerApp.h"
 #include "RMupdateManagerMain.h"
 #include "RMupdateManagerConfig.h"
 DECLARE_APP(RMupdateManagerApp);
@@ -68,6 +69,11 @@ void RMupdateManagerFrame::OnQuit(wxCommandEvent &event)
 {
 	printf("OnQuit, TryQuit\n");
     wxGetApp().TryQuit();
+}
+
+void RMupdateManagerFrame::OnOnlineHelp(wxCommandEvent& event)
+{
+	OPENLINK("http://code.google.com/p/rmupdate/wiki/RMupdateManager_how_to_use");
 }
 
 void RMupdateManagerFrame::OnAbout(wxCommandEvent &event)
