@@ -467,7 +467,6 @@ void RMupdateManagerApp::ProjModified(bool isModified)
 {
 	proj_info_t p;
 	p = GetProjInfo();
-printf("isModified set to %x\n", isModified);
 	if (p.modified != isModified) {
 		p.modified = isModified;
 		SetProjInfo(p);
@@ -482,14 +481,11 @@ bool RMupdateManagerApp::GetProjModified()
 void RMupdateManagerApp::TryQuit()
 {
 	if (GetProjModified()) {
-		printf("modified\n");
 		if (wxMessageDialog(NULL, _("工程还没有保存，确定要退出？"), _("工程未保存"), wxOK | wxCANCEL | wxICON_QUESTION).ShowModal() == wxID_OK) {
-			printf("modified and exit(0)\n");
 			exit(0);
 		}
 	}
 	else {
-		printf("exit(0) directory\n");
 		exit(0);
 	}
 }

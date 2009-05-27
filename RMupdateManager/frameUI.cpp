@@ -202,3 +202,98 @@ FrameConfig::~FrameConfig()
 	m_buttonCheckUpdate->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnCheckUpdate ), NULL, this );
 	m_buttonRelease->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( FrameConfig::OnRelease ), NULL, this );
 }
+
+DialogAbout::DialogAbout( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+	
+	wxBoxSizer* bSizer5;
+	bSizer5 = new wxBoxSizer( wxVERTICAL );
+	
+	wxBoxSizer* bSizer6;
+	bSizer6 = new wxBoxSizer( wxVERTICAL );
+	
+	m_staticText4 = new wxStaticText( this, wxID_ANY, wxT("RMupdateManager"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText4->Wrap( -1 );
+	m_staticText4->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 92, false, wxEmptyString ) );
+	
+	bSizer6->Add( m_staticText4, 0, wxTOP|wxRIGHT|wxLEFT, 5 );
+	
+	m_staticText5 = new wxStaticText( this, wxID_ANY, wxT("一个RMXP/VX开发项目更新管理程序"), wxPoint( -1,-1 ), wxDefaultSize, 0 );
+	m_staticText5->Wrap( -1 );
+	m_staticText5->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxEmptyString ) );
+	m_staticText5->SetForegroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_GRAYTEXT ) );
+	
+	bSizer6->Add( m_staticText5, 0, wxBOTTOM|wxRIGHT|wxLEFT, 5 );
+	
+	bSizer5->Add( bSizer6, 0, 0, 5 );
+	
+	wxBoxSizer* bSizer7;
+	bSizer7 = new wxBoxSizer( wxVERTICAL );
+	
+	m_notebookInfo = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
+	m_panelInfo = new wxPanel( m_notebookInfo, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer11;
+	bSizer11 = new wxBoxSizer( wxVERTICAL );
+	
+	wxBoxSizer* bSizer12;
+	bSizer12 = new wxBoxSizer( wxVERTICAL );
+	
+	m_staticText7 = new wxStaticText( m_panelInfo, wxID_ANY, wxT("软件：RMupdateManager\n\n版本：舒克1（2009年5月27日）\n\n立项日期：2009年4月22日\n"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText7->Wrap( -1 );
+	bSizer12->Add( m_staticText7, 1, wxEXPAND|wxALL, 5 );
+	
+	bSizer11->Add( bSizer12, 0, wxEXPAND|wxTOP, 5 );
+	
+	wxBoxSizer* bSizer13;
+	bSizer13 = new wxBoxSizer( wxHORIZONTAL );
+	
+	m_staticText6 = new wxStaticText( m_panelInfo, wxID_ANY, wxT("开发站点："), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText6->Wrap( -1 );
+	bSizer13->Add( m_staticText6, 0, wxALL, 5 );
+	
+	m_hyperlink1 = new wxHyperlinkCtrl( m_panelInfo, wxID_ANY, wxT("http://code.google.com/p/rmupdate/"), wxT("http://code.google.com/p/rmupdate"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE );
+	bSizer13->Add( m_hyperlink1, 0, wxALL, 5 );
+	
+	bSizer11->Add( bSizer13, 0, 0, 5 );
+	
+	m_panelInfo->SetSizer( bSizer11 );
+	m_panelInfo->Layout();
+	bSizer11->Fit( m_panelInfo );
+	m_notebookInfo->AddPage( m_panelInfo, wxT("信息"), true );
+	m_panelCredits = new wxPanel( m_notebookInfo, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxBoxSizer* bSizer14;
+	bSizer14 = new wxBoxSizer( wxVERTICAL );
+	
+	m_richTextCredits = new wxRichTextCtrl( m_panelCredits, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0|wxVSCROLL|wxHSCROLL|wxNO_BORDER|wxWANTS_CHARS );
+	bSizer14->Add( m_richTextCredits, 1, wxEXPAND | wxALL, 5 );
+	
+	m_panelCredits->SetSizer( bSizer14 );
+	m_panelCredits->Layout();
+	bSizer14->Fit( m_panelCredits );
+	m_notebookInfo->AddPage( m_panelCredits, wxT("鸣谢"), false );
+	
+	bSizer7->Add( m_notebookInfo, 1, wxEXPAND | wxALL, 5 );
+	
+	bSizer5->Add( bSizer7, 1, wxEXPAND, 5 );
+	
+	wxBoxSizer* bSizer9;
+	bSizer9 = new wxBoxSizer( wxVERTICAL );
+	
+	m_buttonOK = new wxButton( this, wxID_OK, wxT("确定"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer9->Add( m_buttonOK, 0, wxALL, 5 );
+	
+	bSizer5->Add( bSizer9, 0, wxALIGN_CENTER_HORIZONTAL, 5 );
+	
+	this->SetSizer( bSizer5 );
+	this->Layout();
+	
+	// Connect Events
+	m_buttonOK->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( DialogAbout::OnQuit ), NULL, this );
+}
+
+DialogAbout::~DialogAbout()
+{
+	// Disconnect Events
+	m_buttonOK->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( DialogAbout::OnQuit ), NULL, this );
+}

@@ -18,35 +18,12 @@
 #include "RMupdateManagerApp.h"
 #include "RMupdateManagerMain.h"
 #include "RMupdateManagerConfig.h"
+#include "RMupdateManagerAbout.h"
 DECLARE_APP(RMupdateManagerApp);
 
 //helper functions
 enum wxbuildinfoformat {
     short_f, long_f };
-
-/*wxString wxbuildinfo(wxbuildinfoformat format)
-{
-    wxString wxbuild(wxVERSION_STRING);
-
-    if (format == long_f )
-    {
-#if defined(__WXMSW__)
-        wxbuild << _T("-Windows");
-#elif defined(__WXMAC__)
-        wxbuild << _T("-Mac");
-#elif defined(__UNIX__)
-        wxbuild << _T("-Linux");
-#endif
-
-#if wxUSE_UNICODE
-        wxbuild << _T("-Unicode build");
-#else
-        wxbuild << _T("-ANSI build");
-#endif // wxUSE_UNICODE
-    }
-
-    return wxbuild;
-}*/
 
 
 RMupdateManagerFrame::RMupdateManagerFrame(wxFrame *frame)
@@ -61,13 +38,11 @@ RMupdateManagerFrame::~RMupdateManagerFrame()
 
 void RMupdateManagerFrame::OnClose(wxCloseEvent &event)
 {
-	printf("OnQuit, TryQuit\n");
 	wxGetApp().TryQuit();
 }
 
 void RMupdateManagerFrame::OnQuit(wxCommandEvent &event)
 {
-	printf("OnQuit, TryQuit\n");
     wxGetApp().TryQuit();
 }
 
@@ -78,7 +53,8 @@ void RMupdateManagerFrame::OnOnlineHelp(wxCommandEvent& event)
 
 void RMupdateManagerFrame::OnAbout(wxCommandEvent &event)
 {
-
+	RMupdateManagerAbout a((wxFrame*)this, _T("关于"));
+	a.ShowModal();
 }
 
 void RMupdateManagerFrame::OnCreateProj( wxCommandEvent& event )
