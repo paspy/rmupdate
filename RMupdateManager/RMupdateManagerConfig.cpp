@@ -230,14 +230,21 @@ void RMupdateManagerConfig::OnCheckUpdate(wxCommandEvent& event)
 
 void RMupdateManagerConfig::OnRelease(wxCommandEvent& event)
 {
+    bool success;
+
 	wxGetApp().SaveProject();
 
-	UpdateResourceFiles();
-    SaveFilesList();
-    UpdateUpdateFile();
+	success = UpdateResourceFiles();
+    if (success) success = SaveFilesList();
+    if (success) success = UpdateUpdateFile();
 
-    m_statusBar->SetStatusText(_T("发布完成"));
-    m_buttonRelease->Enable(false);
+    if (success) {
+        m_statusBar->SetStatusText(_T("发布完成"));
+        m_buttonRelease->Enable(false);
+    }
+    else {
+        m_statusBar->SetStatusText(_("发布失败"));
+    }
 }
 
 void RMupdateManagerConfig::OnTextChange(wxCommandEvent& event)
@@ -438,7 +445,7 @@ bool RMupdateManagerConfig::SaveFilesList()
     char path[1024];
     char proj_path[1024];
 
-    strcpy(proj_path, proj.ProjPath.mb_str());
+    strcpy(proj_path, proj.ProjPath.mb_str(wxConvLibc));
     strcpy(path, proj_path);
     sprintf(tmp, "/release/%ld.%ld.xml", proj.AbsVer, proj.SubAbsVer);
     strcat(path, tmp);
@@ -450,7 +457,7 @@ bool RMupdateManagerConfig::SaveFilesList()
     doc->LinkEndChild(root);
 
     TiXmlElement* version = new TiXmlElement("version");
-    version->LinkEndChild(new TiXmlText(proj.version.mb_str()));
+    version->LinkEndChild(new TiXmlText(proj.version.mb_str(wxConvUTF8)));
     root->LinkEndChild(version);
 
     TiXmlElement* AbsVer = new TiXmlElement("AbsVer");
@@ -482,10 +489,15 @@ bool RMupdateManagerConfig::SaveFilesList()
         long buffer_size;
         FILE* fp_r;
 
-        strcpy(filename, DesFilesList->DesPath[i].mb_str());
+        strcpy(filename, DesFilesList->DesPath[i].mb_str(wxConvUTF8));
         md5 = encrypt_file_path(filename);;
         sprintf(filepath, "%s/release/res/%s.dat", proj_path, md5);
         fp_r = fopen(filepath, "rb");
+        if (fp_r == NULL) {
+            printf("无法以读模式打开文件：%s\n", filepath);
+            wxMessageDialog((wxWindow*)this, _("无法以读模式打开文件：") + wxString(filepath, wxConvLibc), _("错误"), wxICON_EXCLAMATION | wxOK).ShowModal();
+            return false;
+        }
         fseek(fp_r, 0, SEEK_END);
         buffer_size = ftell(fp_r);
         fseek(fp_r, 0, SEEK_SET);
@@ -499,11 +511,11 @@ bool RMupdateManagerConfig::SaveFilesList()
         free(md5);
         fclose(fp_r);
 	#else
-		file->SetAttribute("md5", DesFilesList->md5[i].mb_str());
+		file->SetAttribute("md5", DesFilesList->md5[i].mb_str(wxConvUTF8));
 	#endif
         file->SetAttribute("size", DesFilesList->size[i]);
-        file->SetAttribute("src", DesFilesList->SrcPath[i].mb_str());
-        file->LinkEndChild(new TiXmlText(DesFilesList->DesPath[i].mb_str()));
+        file->SetAttribute("src", DesFilesList->SrcPath[i].mb_str(wxConvUTF8));
+        file->LinkEndChild(new TiXmlText(DesFilesList->DesPath[i].mb_str(wxConvUTF8)));
         files->LinkEndChild(file);
     }
     root->LinkEndChild(files);
@@ -548,7 +560,7 @@ bool RMupdateManagerConfig::UpdateUpdateFile()
     FILE* fp;
     char buffer[2000];
     char path[1024];
-    strcpy(path, proj.ProjPath.mb_str());
+    strcpy(path, proj.ProjPath.mb_str(wxConvLibc));
     strcat(path, "/release/update.xml");
 
     fp = fopen(path, "wb");
@@ -558,7 +570,7 @@ bool RMupdateManagerConfig::UpdateUpdateFile()
 
         strcpy(CDirPath, path);
         CDirPath[strrchr(path, '/') - path] = 0;
-        printf("错误：创建文件失败，试图创建目录：%s\n", path);
+        printf("警告：创建文件失败，试图创建目录：%s\n", path);
         MKDIR(CDirPath);
         fp = fopen(path, "wb");
     }
@@ -569,7 +581,7 @@ bool RMupdateManagerConfig::UpdateUpdateFile()
     }
 
     char version[1024];
-    strcpy(version, proj.version.mb_str());
+    strcpy(version, proj.version.mb_str(wxConvUTF8));
     sprintf(buffer, "<update><version>%s</version><AbsVer>%ld</AbsVer><SubAbsVer>%ld</SubAbsVer><UpdateTime>%ld</UpdateTime></update>", version, proj.AbsVer, proj.SubAbsVer, proj.UpdateTime);
     fwrite(buffer, strlen(buffer), 1, fp);
     fclose(fp);
@@ -621,7 +633,7 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
     proj_info_t proj = wxGetApp().GetProjInfo();
     fileinfo_t* list = DesFilesList;
 
-    strcpy(DirPath, proj.ProjPath.mb_str());
+    strcpy(DirPath, proj.ProjPath.mb_str(wxConvLibc));
     strcat(DirPath, "/release/res/");
 
     unsigned int i = 0;
@@ -649,9 +661,9 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
 		m_statusBar->Update();
 
         //读取文件
-        strcpy(FilePath, list->SrcPath[i].mb_str());
+        strcpy(FilePath, list->SrcPath[i].mb_str(wxConvLibc));
         fp = fopen(FilePath, "rb");
-        if (fp) {
+        if (fp != NULL) {
             fseek(fp, 0, SEEK_END);
             buffer_size = ftell(fp);
             fseek(fp, 0, SEEK_SET);
@@ -660,16 +672,17 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
             fread(buffer, buffer_size, 1, fp);
             fclose(fp);
         }
+        else {
+            printf("无法以读模式打开文件：%s\n", FilePath);
+        }
 
         //     加密文件名。按照工程规范，不管是不是加密工程，文件名都以MD5值出现。
         // 如果是加密版本，则由encrypt_file_path自动加上加密密钥然后计算MD5
         char tmppath[1024];
         char* md5;
-        strcpy(tmppath, list->DesPath[i].mb_str());
-        strcpy(FilePath, DirPath);
+        strcpy(tmppath, list->DesPath[i].mb_str(wxConvUTF8));
         md5 = encrypt_file_path(tmppath);
-        strcat(FilePath, md5);
-        strcat(FilePath, ".dat");
+        sprintf(FilePath, "%s%s.dat", DirPath, md5);
         free(md5);
 
     #ifdef RMUPDATE_ENCRYPT_FILE

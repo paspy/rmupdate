@@ -95,7 +95,7 @@ bool RMupdateManagerApp::OpenProj()
 bool RMupdateManagerApp::LoadProjConfig(const char* path)
 {
     TiXmlDocument dom;
-    if (!dom.LoadFile(path, TIXML_ENCODING_UNKNOWN)) return false;
+    if (!dom.LoadFile(path, TIXML_ENCODING_UTF8)) return false;
 
     TiXmlHandle hDoc(&dom);
     TiXmlHandle root = hDoc.ChildElement("project", 0);
@@ -106,8 +106,8 @@ bool RMupdateManagerApp::LoadProjConfig(const char* path)
     TiXmlElement* eSubAbsVer = (root.ChildElement("SubAbsVer", 0).ToElement());
     TiXmlElement* eUpdateTime = (root.ChildElement("UpdateTime", 0).ToElement());
 
-    ProjInfo.name = wxString(eName->GetText(), wxConvLibc);
-    ProjInfo.version = wxString(eVersion->GetText(), wxConvLibc);
+    ProjInfo.name = wxString(eName->GetText(), wxConvUTF8);
+    ProjInfo.version = wxString(eVersion->GetText(), wxConvUTF8);
 
     //注意，GetText()在字符串为空是会返回0x0，而atol是不会检查该值的，如果直接调用atol将导致SIGSEGV
     const char* tmp;
@@ -142,8 +142,8 @@ bool RMupdateManagerApp::LoadProjConfig(const char* path)
     TiXmlHandle DomDirs = root.ChildElement("MappingDirs", 0);
     TiXmlHandle DomDir = DomDirs.ChildElement("dir", 0);
     while (DomDir.ToElement()) {
-        ProjInfo.MappingDirs.SrcPath.Add(wxString(DomDir.ChildElement("SrcPath", 0).ToElement()->GetText(), wxConvLibc));
-        ProjInfo.MappingDirs.DesPath.Add(wxString(DomDir.ChildElement("DesPath", 0).ToElement()->GetText(), wxConvLibc));
+        ProjInfo.MappingDirs.SrcPath.Add(wxString(DomDir.ChildElement("SrcPath", 0).ToElement()->GetText(), wxConvUTF8));
+        ProjInfo.MappingDirs.DesPath.Add(wxString(DomDir.ChildElement("DesPath", 0).ToElement()->GetText(), wxConvUTF8));
         DomDir = DomDirs.ChildElement("dir", ++i);
     }
 
@@ -151,8 +151,8 @@ bool RMupdateManagerApp::LoadProjConfig(const char* path)
     TiXmlHandle DomFiles = root.ChildElement("MappingFiles", 0);
     TiXmlHandle DomFile = DomFiles.ChildElement("file", 0);
     while (DomFile.ToElement()) {
-        ProjInfo.MappingFiles.SrcPath.Add(wxString(DomFile.ChildElement("SrcPath", 0).ToElement()->GetText(), wxConvLibc));
-        ProjInfo.MappingFiles.DesPath.Add(wxString(DomFile.ChildElement("DesPath", 0).ToElement()->GetText(), wxConvLibc));
+        ProjInfo.MappingFiles.SrcPath.Add(wxString(DomFile.ChildElement("SrcPath", 0).ToElement()->GetText(), wxConvUTF8));
+        ProjInfo.MappingFiles.DesPath.Add(wxString(DomFile.ChildElement("DesPath", 0).ToElement()->GetText(), wxConvUTF8));
         DomFile = DomFiles.ChildElement("file", ++i);
     }
 
@@ -227,12 +227,12 @@ bool RMupdateManagerApp::CreateProjConfig(const char* path)
 
         TiXmlElement* name = new TiXmlElement("name");
         NodeText = _T("未命名");
-        name->LinkEndChild(new TiXmlText(NodeText.mb_str()));
+        name->LinkEndChild(new TiXmlText(NodeText.mb_str(wxConvUTF8)));
         root->LinkEndChild(name);
 
         TiXmlElement* version = new TiXmlElement("version");
         NodeText = _T("初始版本");
-        version->LinkEndChild(new TiXmlText(NodeText.mb_str()));
+        version->LinkEndChild(new TiXmlText(NodeText.mb_str(wxConvUTF8)));
         root->LinkEndChild(version);
 
         TiXmlElement* AbsVer;
@@ -352,11 +352,11 @@ bool RMupdateManagerApp::SaveProject()
         doc->LinkEndChild(root);
 
         TiXmlElement* name = new TiXmlElement("name");
-        name->LinkEndChild(new TiXmlText(ProjInfo.name.mb_str()));
+        name->LinkEndChild(new TiXmlText(ProjInfo.name.mb_str(wxConvUTF8)));
         root->LinkEndChild(name);
 
         TiXmlElement* version = new TiXmlElement("version");
-        version->LinkEndChild(new TiXmlText(ProjInfo.version.mb_str()));
+        version->LinkEndChild(new TiXmlText(ProjInfo.version.mb_str(wxConvUTF8)));
         root->LinkEndChild(version);
 
         TiXmlElement* AbsVer = new TiXmlElement("AbsVer");
@@ -385,8 +385,8 @@ bool RMupdateManagerApp::SaveProject()
             TiXmlElement* dir = new TiXmlElement("dir");
             TiXmlElement* SrcPath = new TiXmlElement("SrcPath");
             TiXmlElement* DesPath = new TiXmlElement("DesPath");
-            SrcPath->LinkEndChild(new TiXmlText(ProjInfo.MappingDirs.SrcPath[i].mb_str()));
-            DesPath->LinkEndChild(new TiXmlText(ProjInfo.MappingDirs.DesPath[i].mb_str()));
+            SrcPath->LinkEndChild(new TiXmlText(ProjInfo.MappingDirs.SrcPath[i].mb_str(wxConvUTF8)));
+            DesPath->LinkEndChild(new TiXmlText(ProjInfo.MappingDirs.DesPath[i].mb_str(wxConvUTF8)));
             dir->LinkEndChild(SrcPath);
             dir->LinkEndChild(DesPath);
             MappingDirs->LinkEndChild(dir);
@@ -395,8 +395,8 @@ bool RMupdateManagerApp::SaveProject()
             TiXmlElement* file = new TiXmlElement("file");
             TiXmlElement* SrcPath = new TiXmlElement("SrcPath");
             TiXmlElement* DesPath = new TiXmlElement("DesPath");
-            SrcPath->LinkEndChild(new TiXmlText(ProjInfo.MappingFiles.SrcPath[i].mb_str()));
-            DesPath->LinkEndChild(new TiXmlText(ProjInfo.MappingFiles.DesPath[i].mb_str()));
+            SrcPath->LinkEndChild(new TiXmlText(ProjInfo.MappingFiles.SrcPath[i].mb_str(wxConvUTF8)));
+            DesPath->LinkEndChild(new TiXmlText(ProjInfo.MappingFiles.DesPath[i].mb_str(wxConvUTF8)));
             file->LinkEndChild(SrcPath);
             file->LinkEndChild(DesPath);
             MappingFiles->LinkEndChild(file);
