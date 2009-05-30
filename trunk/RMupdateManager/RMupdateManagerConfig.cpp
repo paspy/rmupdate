@@ -718,8 +718,8 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
 		unsigned long k;
 		long matched;
 
-		m_statusBar->SetStatusText(_T("检查更新文件：") + list->DesPath[i]);
-		m_statusBar->Update();
+		m_statusBar->SetStatusText(_T("检查是否需要更新文件：") + list->DesPath[i]);
+		Update();
 
 		matched = false;
 		for (k = 0; k < SrcFilesList->DesPath.GetCount(); k++) {
@@ -733,7 +733,7 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
 		if (matched) continue;
 
 		m_statusBar->SetStatusText(_T("正在写入更新文件：") + list->DesPath[i]);
-		m_statusBar->Update();
+		Update();
 
         //读取文件
         strcpy(FilePath, list->SrcPath[i].mb_str(wxConvLibc));
@@ -797,7 +797,7 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
 
     }
 
-    return true;
+    return CleanResourceFiles(DirPath);
 }
 
 bool RMupdateManagerConfig::CheckMappingFileValid(fileinfo_t* list)
@@ -820,6 +820,44 @@ bool RMupdateManagerConfig::CloseProject()
 		}
 		else {
 			return false;
+		}
+	}
+
+	return true;
+}
+
+bool RMupdateManagerConfig::CleanResourceFiles(const char* ResDir)
+{
+	wxDir dir;
+	wxArrayString files;
+	wxString path;
+	wxArrayString CurPathList;
+	unsigned long i, k;
+
+	path = wxString(ResDir, wxConvLibc);
+
+	// 先生成一份当前版本的映射文件的资源文件名
+	for (k = 0; k < DesFilesList->DesPath.GetCount(); k++) {
+		char* md5name;
+		char path[2056];
+
+		md5name = encrypt_file_path(DesFilesList->DesPath[k].mb_str(wxConvUTF8));
+		sprintf(path, "%s%s.dat", ResDir, md5name);
+		CurPathList.Add(wxString(path, wxConvUTF8));
+
+		free(md5name);
+	}
+
+	dir.GetAllFiles(path, &files, wxEmptyString, wxDIR_FILES);
+	for (i = 0; i < files.GetCount(); i++) {
+		for (k = 0; k < CurPathList.GetCount(); k++) {
+			if (files[i] == CurPathList[k]) break;
+		}
+
+		// 遍历完数组以后还没有发现匹配的，所以这个文件已经不需要了
+		if (k == CurPathList.GetCount()) {
+			DPRINTF("删除发布资源目录中的旧文件：%s\n", (const char*)files[i].mb_str(wxConvLibc));
+			remove(files[i].mb_str(wxConvLibc));
 		}
 	}
 

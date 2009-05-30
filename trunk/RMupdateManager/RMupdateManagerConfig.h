@@ -43,6 +43,7 @@ class RMupdateManagerConfig: public FrameConfig
 		bool UpdateResourceFile();
 		bool CheckMappingFileValid(fileinfo_t* list);
 		bool CloseProject();
+		bool CleanResourceFiles(const char* ResDir);
 
 		bool MappingChanged;
 		fileinfo_t* SrcFilesList;
