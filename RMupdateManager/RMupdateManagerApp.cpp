@@ -332,18 +332,8 @@ bool RMupdateManagerApp::SetProjInfo(proj_info_t& proj)
 
 bool RMupdateManagerApp::SaveProject()
 {
-    //设置版本号，以及更新时间戳
-    long DateStamp = GetDateStamp();
-    if (ProjInfo.AbsVer == DateStamp) {
-        ProjInfo.SubAbsVer++;
-    }
-    else {
-        ProjInfo.AbsVer = DateStamp;
-        ProjInfo.SubAbsVer = 0;
-    }
+    //设置更新时间戳
     ProjInfo.UpdateTime = time(NULL);
-
-    // 重新从设置表格中载入映射文件表
 
     //创建XML文档
     try {

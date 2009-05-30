@@ -69,6 +69,7 @@ class RMupdateManagerApp : public wxApp
         bool GetProjModified();
         void ProjectOpened(bool isOpened);
         bool GetProjectOpened();
+		long GetDateStamp();
 
 		wxIcon icon;
 		wxFileConfig* profile;
@@ -78,7 +79,6 @@ class RMupdateManagerApp : public wxApp
         bool ProjOpened;
 
         bool CreateProjConfig(const char* path);
-        long GetDateStamp();
         void ReadUserProfile();
         bool SaveUserProfile();
         wxString GetUserProfilePath();
