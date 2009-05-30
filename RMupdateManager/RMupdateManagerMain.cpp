@@ -21,6 +21,8 @@
 #include "RMupdateManagerAbout.h"
 DECLARE_APP(RMupdateManagerApp);
 
+extern RMupdateManagerConfig* frameConfig;
+
 //helper functions
 enum wxbuildinfoformat {
     short_f, long_f };
@@ -59,13 +61,38 @@ void RMupdateManagerFrame::OnAbout(wxCommandEvent &event)
 
 void RMupdateManagerFrame::OnCreateProj( wxCommandEvent& event )
 {
+	if (wxGetApp().GetProjModified()) {
+		wxMessageDialog dlg(this, _("打开的工程已经修改，是否关闭当前已经打开的工程并创建新工程？"), wxGetApp().GetAppName(), wxICON_EXCLAMATION | wxYES | wxNO);
+		if (dlg.ShowModal() != wxID_OK) {
+			return ;
+		}
+	}
+
+	// 如果当前已经打开了工程，则关闭
+	if (wxGetApp().GetProjectOpened()) {
+		frameConfig->Destroy();
+	}
+
     if (wxGetApp().CreateProj()) RefreshProjInfo();
 }
 
 void RMupdateManagerFrame::OnOpenProj( wxCommandEvent& event )
 {
+	if (wxGetApp().GetProjModified()) {
+		wxMessageDialog dlg(this, _("打开的工程已经修改，是否关闭当前已经打开的工程并打开另一工程？"), wxGetApp().GetAppName(), wxICON_EXCLAMATION | wxYES | wxNO);
+		if (dlg.ShowModal() != wxID_OK) {
+			return ;
+		}
+	}
+
+	// 如果当前已经打开了工程，则关闭
+	if (wxGetApp().GetProjectOpened()) {
+		frameConfig->Destroy();
+	}
+
+	// 打开工程并产生窗口
     if (wxGetApp().OpenProj()) {
-        RMupdateManagerConfig* frameConfig = new RMupdateManagerConfig(0L);
+        frameConfig = new RMupdateManagerConfig(0L);
         frameConfig->Show();
     }
     RefreshProjInfo();
@@ -108,4 +135,13 @@ void RMupdateManagerFrame::RefreshProjInfo()
 void RMupdateManagerFrame::OnSaveProj( wxCommandEvent& event )
 {
     wxGetApp().SaveProject();
+}
+
+void RMupdateManagerFrame::ProjectOpened(bool isOpened)
+{
+	if (isOpened) {
+	}
+	else {
+		m_staticTextProjInfo->SetLabel(_("没有打开工程"));
+	}
 }

@@ -28,6 +28,7 @@ IMPLEMENT_APP(RMupdateManagerApp);
 DECLARE_APP(RMupdateManagerApp);
 
 RMupdateManagerFrame* frameProject;
+RMupdateManagerConfig* frameConfig;
 
 RMupdateManagerApp::RMupdateManagerApp()
 {
@@ -61,6 +62,9 @@ bool RMupdateManagerApp::OnInit()
 
     frameProject = new RMupdateManagerFrame(0L);
     frameProject->Show();
+
+	// 一开始当然是没有打开工程的
+	ProjectOpened(false);
 
     return true;
 }
@@ -198,7 +202,7 @@ bool RMupdateManagerApp::CreateProj()
 
     if (!this->CreateProjConfig(ConfigDir)) return false;
 
-    RMupdateManagerConfig* frameConfig = new RMupdateManagerConfig(0L);
+    frameConfig = new RMupdateManagerConfig(0L);
     frameConfig->Show();
     return true;
 }
@@ -480,6 +484,25 @@ void RMupdateManagerApp::ProjModified(bool isModified)
 bool RMupdateManagerApp::GetProjModified()
 {
 	return GetProjInfo().modified;
+}
+
+void RMupdateManagerApp::ProjectOpened(bool isOpened)
+{
+	ProjOpened = isOpened;
+
+	if (isOpened) {
+	}
+	else {
+		ProjModified(false);
+	}
+
+	frameProject->RefreshProjInfo();
+	frameProject->ProjectOpened(isOpened);
+}
+
+bool RMupdateManagerApp::GetProjectOpened()
+{
+	return ProjOpened;
 }
 
 void RMupdateManagerApp::TryQuit()
