@@ -389,9 +389,9 @@ bool RMupdateManagerConfig::LoadFilesList()
     TiXmlHandle DomFile = hUpdate.ChildElement("file", 0);
 
     while (DomFile.ToElement()) {
-        list->DesPath.Add(wxString(DomFile.ToElement()->GetText(), wxConvLibc));
-        list->SrcPath.Add(wxString(DomFile.ToElement()->Attribute("src"), wxConvLibc));
-        list->md5.Add(wxString(DomFile.ToElement()->Attribute("md5"), wxConvLibc));
+        list->DesPath.Add(wxString(DomFile.ToElement()->GetText(), wxConvUTF8));
+        list->SrcPath.Add(wxString(DomFile.ToElement()->Attribute("src"), wxConvUTF8));
+        list->md5.Add(wxString(DomFile.ToElement()->Attribute("md5"), wxConvUTF8));
         const char* tsize = DomFile.ToElement()->Attribute("size");
         if (tsize) {
             list->size.Add(atol(tsize));
@@ -483,18 +483,18 @@ long RMupdateManagerConfig::CompareFilesList(fileinfo_t*& src, fileinfo_t*& des)
     long UnflagSrcNum = src->md5.Count();
     long UnflagDesNum = des->md5.Count();
     long ModifiedNum = 0;
-
-    //为ExistFlag载入源列表
     unsigned int i;
-    /*for (i = 0; i < UnflagSrcNum; i++) {
-        ExistFlag.md5[i] = src->md5[i];
-        ExistFlag.exist[i] = 0;
-    }*/
 
     //依次比较des和src的相同的DesPath的文件的哈希值，如果不同，则是修改数+1
     for (i = 0; i < des->md5.Count(); i++) {
         unsigned int k;
         for (k = 0; k < src->DesPath.GetCount(); k++) {
+            printf("Compare(%lu):\n--%s\n--%s\n",
+                    k,
+                    (const char*)src->DesPath[k].mb_str(wxConvUTF8),
+                    (const char*)des->DesPath[i].mb_str(wxConvUTF8)
+                    );
+
             if (src->DesPath[k] == des->DesPath[i]) break;
         }
         if (k != src->DesPath.GetCount()) {
