@@ -837,21 +837,29 @@ bool RMupdateManagerConfig::CleanResourceFiles(const char* ResDir)
 	path = wxString(ResDir, wxConvLibc);
 
 	// 先生成一份当前版本的映射文件的资源文件名
+	// 路径同意使用斜杠
 	for (k = 0; k < DesFilesList->DesPath.GetCount(); k++) {
 		char* md5name;
 		char path[2056];
+		wxString AddPath;
 
 		md5name = encrypt_file_path(DesFilesList->DesPath[k].mb_str(wxConvUTF8));
 		sprintf(path, "%s%s.dat", ResDir, md5name);
-		CurPathList.Add(wxString(path, wxConvUTF8));
-
+		AddPath = wxString(path, wxConvLibc);
+		AddPath.Replace(_T("\\"), _T("/"));
+		CurPathList.Add(AddPath);
 		free(md5name);
 	}
 
 	dir.GetAllFiles(path, &files, wxEmptyString, wxDIR_FILES);
 	for (i = 0; i < files.GetCount(); i++) {
+	    files[i].Replace(_T("\\"), _T("/"));
 		for (k = 0; k < CurPathList.GetCount(); k++) {
-			if (files[i] == CurPathList[k]) break;
+		    char str_res[1024];
+		    char str_cfg[1024];
+		    strcpy(str_res, files[i].mb_str(wxConvUTF8));
+		    strcpy(str_cfg, CurPathList[k].mb_str(wxConvUTF8));
+			if (!strcmp(str_res, str_cfg)) break;
 		}
 
 		// 遍历完数组以后还没有发现匹配的，所以这个文件已经不需要了

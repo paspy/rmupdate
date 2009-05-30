@@ -33,6 +33,7 @@ RMupdateManagerConfig* frameConfig;
 RMupdateManagerApp::RMupdateManagerApp()
 {
 	ProjInfo.modified = false;
+	ProjOpened = false;
 }
 
 RMupdateManagerApp::~RMupdateManagerApp()
@@ -64,7 +65,7 @@ bool RMupdateManagerApp::OnInit()
     frameProject->Show();
 
 	// 一开始当然是没有打开工程的
-	ProjectOpened(false);
+	//ProjectOpened(false);
 
     return true;
 }
