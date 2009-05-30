@@ -40,6 +40,7 @@ class RMupdateManagerConfig: public FrameConfig
 		bool UpdateUpdateFile();
 		bool UpdateResourceFiles();
 		bool UpdateResourceFile();
+		bool CheckMappingFileValid(fileinfo_t* list);
 
 		bool MappingChanged;
 		fileinfo_t* SrcFilesList;
