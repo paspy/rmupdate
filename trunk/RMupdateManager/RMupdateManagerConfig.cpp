@@ -283,9 +283,26 @@ void RMupdateManagerConfig::OnCheckUpdate(wxCommandEvent& event)
 void RMupdateManagerConfig::OnRelease(wxCommandEvent& event)
 {
     bool success;
+	long DateStamp;
+	proj_info_t ConfigR;
+	proj_info_t ProjInfo;
 
+    // 保存当前版本号，并设置版本号++
+    ProjInfo = ConfigR = wxGetApp().GetProjInfo();
+    DateStamp = wxGetApp().GetDateStamp();
+    if (ProjInfo.AbsVer == DateStamp) {
+        ProjInfo.SubAbsVer++;
+    }
+    else {
+        ProjInfo.AbsVer = DateStamp;
+        ProjInfo.SubAbsVer = 0;
+    }
+    wxGetApp().SetProjInfo(ProjInfo);
+
+	// 先保存工程
 	wxGetApp().SaveProject();
 
+	// 发布
 	success = UpdateResourceFiles();
     if (success) success = SaveFilesList();
     if (success) success = UpdateUpdateFile();
@@ -296,6 +313,12 @@ void RMupdateManagerConfig::OnRelease(wxCommandEvent& event)
     }
     else {
         m_statusBar->SetStatusText(_("发布失败"));
+
+        // 如果发布失败，则需要回滚版本号
+        ProjInfo = wxGetApp().GetProjInfo();
+        ProjInfo.AbsVer = ConfigR.AbsVer;
+        ProjInfo.SubAbsVer = ConfigR.SubAbsVer;
+        wxGetApp().SetProjInfo(ProjInfo);
     }
 }
 
