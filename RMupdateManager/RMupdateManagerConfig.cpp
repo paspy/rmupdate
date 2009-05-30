@@ -215,6 +215,7 @@ void RMupdateManagerConfig::OnCheckUpdate(wxCommandEvent& event)
 
     // 检查是否有文件映射到了空目录
     if (!CheckMappingFileValid(DesFilesList)) {
+        SetStatus(_("映射文件的目录不能为空"));
         wxMessageDialog((wxWindow*)this, _("映射文件的目标不能为空"), _("错误"), wxICON_EXCLAMATION | wxOK).ShowModal();
         m_buttonCheckUpdate->Enable(true);
         return;
@@ -224,7 +225,7 @@ void RMupdateManagerConfig::OnCheckUpdate(wxCommandEvent& event)
     if (UpdateNum > 0) {
         char info[100];
         sprintf(info, "共有%ld个文件更新", UpdateNum);
-        SetStatus(wxString(info, wxConvLibc));
+        SetStatus(wxString(info, wxConvUTF8));
 
         m_buttonRelease->Enable(true);
     }
@@ -338,7 +339,7 @@ bool RMupdateManagerConfig::LoadFilesList()
         DomFile = hUpdate.ChildElement("file", ++i);
     }
 
-    SetStatus(wxString("更新成功", wxConvLibc));
+    SetStatus(wxString("更新成功", wxConvUTF8));
     return true;
 }
 
@@ -372,11 +373,11 @@ bool RMupdateManagerConfig::LoadFile2List(fileinfo_t*& list, wxString SrcPath, w
     fp = fopen(path, "rb");
     if (!fp) {
         printf("error: can not open %s\n", path );
-        SetStatus(wxString("无法打开文件：", wxConvLibc) + SrcPath);
+        SetStatus(wxString("无法打开文件：", wxConvUTF8) + SrcPath);
         return false;
     }
 
-    this->SetStatus(wxString("正在检查文件：", wxConvLibc) + SrcPath);
+    this->SetStatus(wxString("正在检查文件：", wxConvUTF8) + SrcPath);
     Update();
 
     #ifdef DEBUG
