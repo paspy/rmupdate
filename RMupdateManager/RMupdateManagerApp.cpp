@@ -343,6 +343,8 @@ bool RMupdateManagerApp::SaveProject()
     }
     ProjInfo.UpdateTime = time(NULL);
 
+    // 重新从设置表格中载入映射文件表
+
     //创建XML文档
     try {
         char ConfigPath[1024];

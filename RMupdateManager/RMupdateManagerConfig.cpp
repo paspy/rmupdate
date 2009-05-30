@@ -115,6 +115,47 @@ void RMupdateManagerConfig::OnQuit(wxCommandEvent &event)
    if (CloseProject()) event.Skip();
 }
 
+void RMupdateManagerConfig::OnCellChange( wxGridEvent& event )
+{
+	proj_info_t info;
+	wxString CurSrcPath;
+	wxString CurDesPath;
+	wxArrayString* ModSrcPath;
+	wxArrayString* ModDesPath;
+	int CurRow;
+	unsigned long i;
+
+	// 修改工程设置数据
+	CurRow = event.GetRow();
+	CurSrcPath = m_gridMapping->GetCellValue(CurRow, 0);
+	CurDesPath = m_gridMapping->GetCellValue(CurRow, 1);
+	info = wxGetApp().GetProjInfo();
+
+	if (m_gridMapping->GetCellValue(CurRow, 2) == _("目录")) {
+		ModSrcPath = &info.MappingDirs.SrcPath;
+		ModDesPath = &info.MappingDirs.DesPath;
+	}
+	else {
+		ModSrcPath = &info.MappingFiles.SrcPath;
+		ModDesPath = &info.MappingFiles.DesPath;
+	}
+
+	for (i = 0; i < ModSrcPath->GetCount(); i++) {
+		if ((*ModSrcPath)[i] == CurSrcPath) {
+			(*ModDesPath)[i] = CurDesPath;
+			break;
+		}
+	}
+	wxGetApp().SetProjInfo(info);
+
+	// 更新工程保存信息
+	wxGetApp().ProjModified(true);
+	frameProject->RefreshProjInfo();
+
+    MappingChanged = true;
+    m_buttonCheckUpdate->Enable(true);
+}
+
 void RMupdateManagerConfig::SetStatus(wxString info)
 {
 	m_statusBar->SetStatusText(info);
