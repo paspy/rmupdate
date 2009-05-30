@@ -94,8 +94,8 @@ void RMupdateManagerFrame::OnOpenProj( wxCommandEvent& event )
     if (wxGetApp().OpenProj()) {
         frameConfig = new RMupdateManagerConfig(0L);
         frameConfig->Show();
+        RefreshProjInfo();
     }
-    RefreshProjInfo();
 }
 
 void RMupdateManagerFrame::RefreshProjInfo()
@@ -134,6 +134,7 @@ void RMupdateManagerFrame::RefreshProjInfo()
 
 void RMupdateManagerFrame::OnSaveProj( wxCommandEvent& event )
 {
+	if (!wxGetApp().GetProjModified()) return;
     wxGetApp().SaveProject();
 }
 
