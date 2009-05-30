@@ -210,6 +210,13 @@ void RMupdateManagerConfig::OnCheckUpdate(wxCommandEvent& event)
 
     LoadFilesList();
 
+    // 检查是否有文件映射到了空目录
+    if (!CheckMappingFileValid(DesFilesList)) {
+        wxMessageDialog((wxWindow*)this, _("映射文件的目标不能为空"), _("错误"), wxICON_EXCLAMATION | wxOK).ShowModal();
+        m_buttonCheckUpdate->Enable(true);
+        return;
+    }
+
     long UpdateNum = CompareFilesList(SrcFilesList, DesFilesList);
     if (UpdateNum > 0) {
         char info[100];
@@ -674,6 +681,7 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
         }
         else {
             printf("无法以读模式打开文件：%s\n", FilePath);
+            wxMessageDialog((wxWindow*)this, _("无法以读模式打开文件：") + list->SrcPath[i], _("错误"), wxICON_EXCLAMATION | wxOK).ShowModal();
         }
 
         //     加密文件名。按照工程规范，不管是不是加密工程，文件名都以MD5值出现。
@@ -698,12 +706,12 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
             char CDirPath[1024];
 
             strcpy(CDirPath, FilePath);
-        #if defined(__WXMSW__)
-            CDirPath[strrchr(FilePath, '\\') - FilePath] = 0;
-        #elif defined(__UNIX__)
+        //#if defined(__WXMSW__)
+            //CDirPath[strrchr(FilePath, '\\') - FilePath] = 0;
+       // #elif defined(__UNIX__)
             CDirPath[strrchr(FilePath, '/') - FilePath] = 0;
-        #endif
-            printf("错误：创建文件失败，试图创建目录：%s\n", CDirPath);
+        //#endif
+            printf("警告：创建文件失败，试图创建目录：%s\n", CDirPath);
             MKDIR(CDirPath)
             fp = fopen(FilePath, "wb");
         }
@@ -714,10 +722,22 @@ bool RMupdateManagerConfig::UpdateResourceFiles()
         }
         else {
             printf("错误：无法以写模式打开 %s\n", FilePath);
+            wxMessageDialog((wxWindow*)this, _("无法以写模式打开文件：") + wxString(FilePath, wxConvLibc), _("错误"), wxICON_EXCLAMATION | wxOK).ShowModal();
         }
 
         free(buffer);
 
+    }
+
+    return true;
+}
+
+bool RMupdateManagerConfig::CheckMappingFileValid(fileinfo_t* list)
+{
+    unsigned long i;
+
+    for (i = 0; i < list->DesPath.GetCount(); i++) {
+        if (list->DesPath[i].Length() == 0) return false;
     }
 
     return true;
