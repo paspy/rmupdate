@@ -42,6 +42,7 @@ RMupdateManagerConfig::RMupdateManagerConfig(wxFrame *frame)
     this->MappingChanged = false;
     this->SrcFilesList = new fileinfo_t;
     this->DesFilesList = new fileinfo_t;
+    wxGetApp().ProjectOpened(true);
 
     //设置界面
 #ifndef __WXMSW__
@@ -100,16 +101,18 @@ RMupdateManagerConfig::~RMupdateManagerConfig()
 {
     delete this->SrcFilesList;
     delete this->DesFilesList;
+
+    wxGetApp().ProjectOpened(false);
 }
 
 void RMupdateManagerConfig::OnClose(wxCloseEvent &event)
 {
-    wxGetApp().TryQuit();
+    if (CloseProject()) event.Skip();
 }
 
 void RMupdateManagerConfig::OnQuit(wxCommandEvent &event)
 {
-    wxGetApp().TryQuit();
+   if (CloseProject()) event.Skip();
 }
 
 void RMupdateManagerConfig::SetStatus(wxString info)
@@ -741,4 +744,19 @@ bool RMupdateManagerConfig::CheckMappingFileValid(fileinfo_t* list)
     }
 
     return true;
+}
+
+bool RMupdateManagerConfig::CloseProject()
+{
+	if (wxGetApp().GetProjModified()) {
+		wxMessageDialog dlg(this, _("工程已经修改，确定要关闭工程吗？"), wxGetApp().GetAppName(), wxICON_QUESTION | wxOK | wxCANCEL);
+		if (dlg.ShowModal() == wxID_OK) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	return true;
 }
