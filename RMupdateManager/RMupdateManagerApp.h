@@ -134,3 +134,13 @@ class RMupdateManagerApp : public wxApp
 		system(cmd); }
 #endif
 // end define OPENLINK(URL)
+
+
+// define DPRINTF(__format, ...)
+// 	this macro will print debug message to stdout acts like printf() when compile with DEBUG macro
+#ifdef DEBUG
+	#define DPRINTF(__format, ...)	\
+		printf(__format, ## __VA_ARGS__);
+#else
+	#define DPRINTF(__format, ...)
+#endif
