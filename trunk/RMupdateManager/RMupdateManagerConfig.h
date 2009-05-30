@@ -30,6 +30,7 @@ class RMupdateManagerConfig: public FrameConfig
 		virtual void OnRelease( wxCommandEvent& event );
 		virtual void OnTextChange( wxCommandEvent& event );
 		virtual void OnDelete( wxCommandEvent& event );
+		virtual void OnCellChange( wxGridEvent& event );
 
 		void SetStatus(wxString info);
 		bool LoadFilesList();

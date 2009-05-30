@@ -89,7 +89,7 @@ class FrameConfig : public wxFrame
 		// Virtual event handlers, overide them in your derived class
 		virtual void OnClose( wxCloseEvent& event ){ event.Skip(); }
 		virtual void OnTextChange( wxCommandEvent& event ){ event.Skip(); }
-		virtual void OnGridCellChange( wxGridEvent& event ){ event.Skip(); }
+		virtual void OnCellChange( wxGridEvent& event ){ event.Skip(); }
 		virtual void OnAddFile( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnAddDir( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnDelete( wxCommandEvent& event ){ event.Skip(); }
