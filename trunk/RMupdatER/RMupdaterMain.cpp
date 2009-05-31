@@ -129,6 +129,9 @@ void RMupdaterFrame::OnUpdate(wxCommandEvent& event)
 		m_buttonCheck->Enable(false);
 		m_statusBarInfo->SetStatusText(_T("更新完成"));
 	}
+	else {
+	    m_statusBarInfo->SetStatusText(_("更新失败"));
+	}
 }
 
 // 减少代码量的宏，用于在信息文本框上显示信息
@@ -153,9 +156,7 @@ void RMupdaterFrame::RefreshUpdateInfo(version_t& ver)
 
 	ttime = localtime(&ver.UpdateTime);
 	strftime(timestr, 100, "%Y年%m月%d日 %H时%M分%S秒", ttime);
-	setlocale(LC_ALL,".ACP");
-	mbstowcs(timestru, timestr, 300);
-	info.Printf(_T("%s"), timestru);
+	info = wxString(timestr, wxConvUTF8);
 	WRITE_INFOITEM("最新版本发布时间：", info);
 
 	wxColour color;
@@ -248,9 +249,7 @@ bool RMupdaterFrame::DownloadUpdateFiles()
 	m_statusBarInfo->SetStatusText(_T("更新文件下载完成"));
 
 	// 调用应用更新的函数进行文件覆盖更新
-	ApplyUpdates();
-
-	return true;
+	return ApplyUpdates();
 }
 
 bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
@@ -264,7 +263,8 @@ bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
 
 	// 计算文件路径
 	char tmppath[1024];
-	strcpy(tmppath, list.DesPath[i].mb_str());
+	strcpy(tmppath, list.DesPath[i].mb_str(wxConvUTF8));
+	printf("tmppath=%s\n", tmppath);
 	filename = encrypt_file_path(tmppath);
 
 	// 设置文件路径
@@ -378,7 +378,7 @@ void RMupdaterFrame::CheckNewest()
     		const char* val;
 
 			strcpy(tmp, root.ChildElement("version", 0).ToElement()->GetText());
-			version = ServerVer.ReleaseName = wxString(tmp, wxConvLibc);
+			version = ServerVer.ReleaseName = wxString(tmp, wxConvUTF8);
 			val = root.ChildElement("AbsVer", 0).ToElement()->GetText();
 			ServerVer.AbsVer = val ? atol(val) : 0;
 			val = root.ChildElement("SubAbsVer", 0).ToElement()->GetText();
@@ -519,7 +519,7 @@ void* RMupdaterFrame::DownloadUpdateList(long AbsVer, long SubAbsVer, size_t& bu
 	return curl_in.buffer;
 }
 
-void RMupdaterFrame::ApplyUpdates()
+bool RMupdaterFrame::ApplyUpdates()
 {
 	file_list_t list = wxGetApp().GetUpdateFileList();
 	unsigned long i, files_count;
@@ -555,7 +555,7 @@ void RMupdaterFrame::ApplyUpdates()
 		m_gaugeCurrent->Update();
 
 		// 加密文件名
-		enc_filename = encrypt_file_path(list.DesPath[i].mb_str());
+		enc_filename = encrypt_file_path(list.DesPath[i].mb_str(wxConvUTF8));
 		sprintf(filename, ".tmp/%s.dat", enc_filename);
 
 		// 设置读文件句柄
@@ -564,7 +564,7 @@ void RMupdaterFrame::ApplyUpdates()
 			printf("无法打开文件：%s\n", filename);
 			wxMessageDialog((wxWindow*)this, _T("无法打开文件：") + wxString(filename, wxConvLibc), _T("应用更新时发生错误"), wxICON_EXCLAMATION | wxID_OK).ShowModal();
 			m_statusBarInfo->SetStatusText(_T("应用更新失败"));
-			return;
+			return false;
 		}
 		else {
 			fseek(fp, 0, SEEK_END);
@@ -580,7 +580,7 @@ void RMupdaterFrame::ApplyUpdates()
 		decrypt_file_content(buffer, buffer_size, tmplong);
 	#endif
 
-		strcpy(filename_des, list.DesPath[i].mb_str());
+		strcpy(filename_des, list.DesPath[i].mb_str(wxConvLibc));
 		ApplyUpdateFile(filename_des, buffer, buffer_size);
 
 		// 结束释放内存

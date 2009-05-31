@@ -139,8 +139,8 @@ void RMupdaterApp::LoadUpdateFileList(TiXmlHandle* hDoc, file_list_t& list)
     i = 0;
     TiXmlHandle file = files.ChildElement("file", 0);
     while (file.ToElement()) {
-    	list.DesPath.Add(wxString(file.ToElement()->GetText(), wxConvLibc));
-    	list.md5.Add(wxString(file.ToElement()->Attribute("md5"), wxConvLibc));
+    	list.DesPath.Add(wxString(file.ToElement()->GetText(), wxConvUTF8));
+    	list.md5.Add(wxString(file.ToElement()->Attribute("md5"), wxConvUTF8));
     	const char* tsize = file.ToElement()->Attribute("size");
     	if (tsize != NULL) {
     		list.size.Add(atol(tsize));
