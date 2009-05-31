@@ -61,6 +61,9 @@ class RMupdaterFrame: public FrameUpdater
         bool DownloadUpdateFile(file_list_t& list, unsigned long i);
         bool ApplyUpdateFile(const char* despath, void* content, long content_size);
         void RefreshUpdateInfo(version_t& ver);
+        void SetCurProcLabel(const wxString& info);
+        void SetTtlProcLabel(const wxString& info);
+        static wxString HumanReadSize(double speed_bytes);
 };
 
 

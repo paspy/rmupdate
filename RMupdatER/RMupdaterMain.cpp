@@ -146,7 +146,6 @@ void RMupdaterFrame::RefreshUpdateInfo(version_t& ver)
 	wxString info;
 	struct tm *ttime;
 	char timestr[100];
-	wchar_t timestru[300];
 
 	info.Printf(_T("%ld.%ld\n"), ver.AbsVer, ver.SubAbsVer);
 	WRITE_INFOITEM("当前版本号：", info);
@@ -244,8 +243,8 @@ bool RMupdaterFrame::DownloadUpdateFiles()
 		m_gaugeTotal->SetValue((i + 1) * 100 / list.DesPath.GetCount());
 	}
 
-	m_staticTextCurProc->SetLabel(_T("当前进度："));
-	m_staticTextTotalProc->SetLabel(_T("总体进度"));
+	SetCurProcLabel(_T("wxEmptyString"));
+	SetTtlProcLabel(wxEmptyString);
 	m_statusBarInfo->SetStatusText(_T("更新文件下载完成"));
 
 	// 调用应用更新的函数进行文件覆盖更新
@@ -281,8 +280,16 @@ bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
 	}
 
 	wxString info;
-	info = (_T("当前进度：正在下载 ") + list.DesPath[i]);
-	m_staticTextCurProc->SetLabel(info);
+	unsigned long FilesCount;
+	FilesCount = list.DesPath.GetCount();
+#ifdef RMUPDATE_ENCRYPT_FILE
+	info.Printf(_("正在下载更新所需的文件..."), i, FilesCount);
+#else
+	info.Printf(_("正在下载： %s"), list.DesPath[i]);
+#endif
+	SetCurProcLabel(info);
+	info.Printf(_("剩余%1$ld个文件，正在下载第%2$ld个，共%3$ld个"), FilesCount - i, i, FilesCount);
+	SetTtlProcLabel(info);
 
 	curl = curl_easy_init();
 	curl_in.curl = curl;
@@ -536,7 +543,7 @@ bool RMupdaterFrame::ApplyUpdates()
 	m_buttonStart->Enable(false);
 	m_gaugeTotal->SetValue(0);
 	m_gaugeCurrent->SetValue(0);
-	m_staticTextCurProc->SetLabel(tipinfo);
+	SetCurProcLabel(tipinfo);
 	m_statusBarInfo->SetStatusText(tipinfo);
 	Update();
 
@@ -589,7 +596,10 @@ bool RMupdaterFrame::ApplyUpdates()
 		fclose(fp);
 	}
 
+	SetCurProcLabel(_(""));
+
 	delete(rg_write);
+	return true;
 }
 
 bool RMupdaterFrame::ApplyUpdateFile(const char* despath, void* content, long content_size)
@@ -689,7 +699,10 @@ size_t RMupdaterFrame::curl_writefunction_check(void *ptr, size_t size, size_t n
     in->buffer_ptr += read_size;
 
     wxString info;
-    info.Printf(_T("正在下载更新文件，共 %1$.0lf 字节，已经下载了 %2$ld 字节"), content_length, in->buffer_ptr);
+    info.Printf(_("正在下载更新文件，共 %1$s，已经下载了 %2$s"),
+				(const char*)HumanReadSize(content_length).mb_str(wxConvUTF8),
+				(const char*)HumanReadSize(in->buffer_ptr).mb_str(wxConvUTF8)
+	);
     pFrameUpdater->SetStatus(info);
     pFrameUpdater->m_gaugeCurrent->SetValue(in->buffer_ptr * 100 / content_length);
     pFrameUpdater->m_gaugeCurrent->Update();
@@ -714,8 +727,13 @@ size_t RMupdaterFrame::curl_writefunction_downfile(void *ptr, size_t size, size_
 	fwrite(ptr, size, nmemb, in->fp);
 
 	wxString info;
+	wxString a = _T("abc");
 	size_t size_down = ftell(in->fp);
-	info.Printf(_T("共%1$.0lf字节，已下载 %2$ld 字节，速度 %3$.1lf KB/s"), content_length, size_down, speed_download / 1024);
+	info.Printf(_("共 %1$s，已下载 %2$s，速度 %3$s/秒"),
+				(const char*)HumanReadSize(content_length).mb_str(wxConvUTF8),
+				(const char*)HumanReadSize(size_down).mb_str(wxConvUTF8),
+				(const char*)HumanReadSize(speed_download / 1024).mb_str(wxConvUTF8)
+	);
 	pFrameUpdater->SetStatus(info);
 	pFrameUpdater->m_gaugeCurrent->SetValue(size_down * 100 / content_length);
 	pFrameUpdater->m_gaugeCurrent->Update();
@@ -723,3 +741,31 @@ size_t RMupdaterFrame::curl_writefunction_downfile(void *ptr, size_t size, size_
 
 	return read_size;
 }
+
+void RMupdaterFrame::SetCurProcLabel(const wxString& info)
+{
+	m_staticTextCurProc->SetLabel(_("当前进度：") + info);
+}
+
+void RMupdaterFrame::SetTtlProcLabel(const wxString& info)
+{
+	m_staticTextTotalProc->SetLabel(_("总体进度：") + info);
+}
+
+wxString RMupdaterFrame::HumanReadSize(double speed_bytes)
+{
+	wxString r;
+
+	if (speed_bytes / 1024 < 1) {
+		r.Printf(_("%.0lf 字节"), speed_bytes);
+	}
+	else if (speed_bytes / (1 << 20) < 1) {
+		r.Printf(_("%.1lf 千字节"), speed_bytes / (1 << 10));
+	}
+	else if (speed_bytes / (1 << 30) < 1) {
+		r.Printf(_("%.2lf 兆字节"), speed_bytes / (1 << 20));
+	}
+
+	return r;
+}
+
