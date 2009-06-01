@@ -422,7 +422,7 @@ void RMupdaterFrame::CheckNewest()
     		buf_current = DownloadUpdateList(LocalVer.AbsVer, LocalVer.SubAbsVer, size_current);
     		if (buf_current == NULL) buf_current = DownloadUpdateList(0, 0, size_current);
     		if (buf_current == NULL) {
-    			m_statusBarInfo->SetStatusText(_T("无法当前版本的列表文件"));
+    			m_statusBarInfo->SetStatusText(_T("无法下载当前版本的列表文件"));
     			return;
     		}
 		#ifdef RMUPDATE_ENCRYPT_FILE
@@ -705,9 +705,13 @@ size_t RMupdaterFrame::curl_writefunction_check(void *ptr, size_t size, size_t n
     in->buffer_ptr += read_size;
 
     wxString info;
-    info.Printf(_("正在下载更新文件，共 %1$s，已经下载了 %2$s"),
-				(const char*)HumanReadSize(content_length).mb_str(wxConvUTF8),
-				(const char*)HumanReadSize(in->buffer_ptr).mb_str(wxConvUTF8)
+#if defined (__WXMSW__)
+	info.Printf(_("正在下载更新文件，共 %1$s，已经下载了 %2$s"),
+#else
+	info.Printf(_("正在下载更新文件，共 %1$S，已经下载了 %2$S"),
+#endif
+				(const wchar_t*)HumanReadSize(content_length).wc_str(),
+				(const wchar_t*)HumanReadSize(in->buffer_ptr).wc_str()
 	);
     pFrameUpdater->SetStatus(info);
     pFrameUpdater->m_gaugeCurrent->SetValue(in->buffer_ptr * 100 / content_length);
