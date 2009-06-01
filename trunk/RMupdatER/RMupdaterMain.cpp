@@ -286,7 +286,7 @@ bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
 #ifdef RMUPDATE_ENCRYPT_FILE
 	info.Printf(_("正在下载更新所需的文件..."), i, FilesCount);
 #else
-	info.Printf(_("正在下载： %s"), list.DesPath[i]);
+	info.Printf(_("正在下载：") + list.DesPath[i]);
 #endif
 	SetCurProcLabel(info);
 	info.Printf(_("剩余%1$ld个文件，正在下载第%2$ld个，共%3$ld个"), FilesCount - i, i, FilesCount);
@@ -567,7 +567,7 @@ bool RMupdaterFrame::ApplyUpdates()
 		sprintf(filename, ".tmp/%s.dat", enc_filename);
 
 		// 设置读文件句柄
-		fp = fopen(filename, "r");
+		fp = fopen(filename, "rb");
 		if (!fp) {
 			printf("无法打开文件：%s\n", filename);
 			wxMessageDialog((wxWindow*)this, _T("无法打开文件：") + wxString(filename, wxConvLibc), _T("应用更新时发生错误"), wxICON_EXCLAMATION | wxID_OK).ShowModal();
