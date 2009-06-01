@@ -729,14 +729,18 @@ size_t RMupdaterFrame::curl_writefunction_downfile(void *ptr, size_t size, size_
 	wxString info;
 	wxString a = _T("abc");
 	size_t size_down = ftell(in->fp);
+#if defined (__WXMSW__)
 	info.Printf(_("共 %1$s，已下载 %2$s，速度 %3$s/秒"),
-				(const char*)HumanReadSize(content_length).mb_str(wxConvUTF8),
-				(const char*)HumanReadSize(size_down).mb_str(wxConvUTF8),
-				(const char*)HumanReadSize(speed_download / 1024).mb_str(wxConvUTF8)
+#else
+	info.Printf(_("共 %1$S，已下载 %2$S，速度 %3$S/秒"),
+#endif
+				(const wchar_t*)HumanReadSize(content_length).wc_str(),
+				(const wchar_t*)HumanReadSize(size_down).wc_str(),
+				(const wchar_t*)HumanReadSize(speed_download).wc_str()
 	);
 	pFrameUpdater->SetStatus(info);
 	pFrameUpdater->m_gaugeCurrent->SetValue(size_down * 100 / content_length);
-	pFrameUpdater->m_gaugeCurrent->Update();
+	pFrameUpdater->Update();
 	wxGetApp().Yield();
 
 	return read_size;
