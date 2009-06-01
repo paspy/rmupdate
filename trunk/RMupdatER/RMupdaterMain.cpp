@@ -200,7 +200,7 @@ bool RMupdaterFrame::DownloadUpdateFiles()
 		char* name_enc;
 
 		//首先检查文件是否已经存在
-		name_enc = encrypt_file_path(list.DesPath[i].mb_str());
+		name_enc = encrypt_file_path(list.DesPath[i].mb_str(wxConvUTF8));
     #if defined(__WXMSW__)
         sprintf(path, ".tmp\\%s.dat", name_enc);
     #elif defined(__UNIX__)
@@ -243,7 +243,7 @@ bool RMupdaterFrame::DownloadUpdateFiles()
 		m_gaugeTotal->SetValue((i + 1) * 100 / list.DesPath.GetCount());
 	}
 
-	SetCurProcLabel(_T("wxEmptyString"));
+	SetCurProcLabel(_T(""));
 	SetTtlProcLabel(wxEmptyString);
 	m_statusBarInfo->SetStatusText(_T("更新文件下载完成"));
 
@@ -263,7 +263,7 @@ bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
 	// 计算文件路径
 	char tmppath[1024];
 	strcpy(tmppath, list.DesPath[i].mb_str(wxConvUTF8));
-	printf("tmppath=%s\n", tmppath);
+	printf("--tmppath=%s\n", tmppath);
 	filename = encrypt_file_path(tmppath);
 
 	// 设置文件路径
@@ -278,6 +278,7 @@ bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
 		printf("can not open file to write: %s\n", filepath);
 		return false;
 	}
+	printf("--下载保存文件句柄路径:%s\n", filepath);
 
 	wxString info;
 	unsigned long FilesCount;
@@ -317,7 +318,7 @@ bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
 		//似乎CURL会返回诡异的和ttp_code，值是一个很大的负数，一次调试的时候打印出来的十六进制是bf8dd0f8
     	wxString info;
     	info.Printf(_T("下载文件时发生错误，HTTP错误代码：%ld"), http_code);
-    	printf("error downloading file: %x, %s\n", (unsigned int)http_code, url);
+    	printf("error downloading file: %ld, %s\n", http_code, url);
     	SetStatus(info);
     	return false;
     }
@@ -614,7 +615,12 @@ bool RMupdaterFrame::ApplyUpdateFile(const char* despath, void* content, long co
 		strstr(despath_lower, "graphics/") == despath_lower
 	){
 		printf("--写入到rgss2a文件\n");
-		rg_write->WriteSubFile(despath, content, content_size);
+    #if defined(__WXMSW__)
+		wxString des(despath, wxConvLibc);
+		rg_write->WriteSubFile((const char*)des.mb_str(wxConvUTF8), content, content_size);
+    #else
+        rg_write->WriteSubFile(despath, content, content_size);
+    #endif
 	}
 	else {
 		// 设置写文件句柄
@@ -666,7 +672,7 @@ void RMupdaterFrame::CleanUpUpdate()
 
 	// 删除临时文件目录
 #if defined(__WXMSW__)
-	WinExec("cmd.exe /C rmdir .tmp /Q /S", SW_HIDE);
+//	WinExec("cmd.exe /C rmdir .tmp /Q /S", SW_HIDE);
 #elif defined(__UNIX__)
 	char cmd[] = "rm -rf '.tmp'";
 	printf("删除临时文件目录: %s", cmd);
