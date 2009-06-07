@@ -551,6 +551,13 @@ bool RMupdaterFrame::ApplyUpdates()
 	rg_write = new rgss2a;
 	rg_write->CreateRgss2aFile("Game.rgss2a.new");
 
+	// 先将没有更新的资源包的文件重新写入一次
+	rg_read = new rgss2a;
+	if (rg_read->OpenRgss2aFile("Game.rgss2a") || rg_read->OpenRgss2aFile("Game.rgssad")) {
+		ApplyNotUpdateRgss2a(list);
+	}
+	delete rg_read;
+
 	files_count = list.DesPath.GetCount();
 	for (i = 0; i < files_count; i++) {
 		long current_proc;
@@ -642,7 +649,7 @@ bool RMupdaterFrame::ApplyUpdateFile(const char* despath, void* content, long co
 			return false;
 		}
 
-		printf("写入到：%s\n", despath);
+		printf("----写入到：%s\n", despath);
 		fwrite(content, 1, content_size, fp);
 
 		fclose(fp);
@@ -781,5 +788,34 @@ wxString RMupdaterFrame::HumanReadSize(double speed_bytes)
 	}
 
 	return r;
+}
+
+void RMupdaterFrame::ApplyNotUpdateRgss2a(file_list_t& list)
+{
+	void* content;
+	unsigned long content_size, i;
+	char* filename;
+
+	if (!rg_read) wxASSERT(_("rg_read 未初始化"));
+
+	while (rg_read->ReadSubFile(filename, content, content_size)) {
+		for (i = 0; i < list.DesPath.GetCount(); i++) {
+			if (strcmp(list.DesPath[i].mb_str(wxConvLibc), filename) == 0) break;
+		}
+
+		if (i == list.DesPath.GetCount()) {
+			// 把读出来的文件名中的反斜线换成斜线
+			unsigned long k;
+			for (k = 0; k < strlen(filename); k++) {
+				if (filename[k] == '\\') filename[k] = '/';
+			}
+
+			ApplyUpdateFile(filename, content, content_size);
+		}
+
+		// 释放分配的内存
+		free(content);
+		free(filename);
+	}
 }
 
