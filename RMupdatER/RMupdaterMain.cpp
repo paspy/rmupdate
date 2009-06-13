@@ -118,7 +118,9 @@ void RMupdaterFrame::OnCheck(wxCommandEvent& event)
 
 void RMupdaterFrame::OnUpdate(wxCommandEvent& event)
 {
-	if (DownloadUpdateFiles()) {
+    DownloadUpdateFiles();
+
+	if (ApplyUpdates()) {
 		// 更奔本地版本信息
 		wxGetApp().UpdateVersionInfo(ServerVer);
 
@@ -131,6 +133,7 @@ void RMupdaterFrame::OnUpdate(wxCommandEvent& event)
 	}
 	else {
 	    m_statusBarInfo->SetStatusText(_("更新失败"));
+	    m_buttonUpdate->Enable(true);
 	}
 }
 
@@ -210,6 +213,15 @@ bool RMupdaterFrame::DownloadUpdateFiles()
 
 		fp = fopen(path, "rb");
 		printf("读取文件进行检查：%s\n", path);
+
+        wxString info;
+    #ifdef RMUPDATE_ENCRYPT_FILE
+        info.Printf(_("正在检查第%1$lu个临时文件（共%2$lu个）"), i, list.DesPath.GetCount());
+    #else
+        info.Printf(_("正在检查临时文件：") + list.DesPath[i]);
+    #endif
+        m_statusBarInfo->SetStatusText(info);
+
 		if (!fp) {
 		    printf("--文件不存在，进行下载");
 			if (!DownloadUpdateFile(list, i)) return false;
@@ -247,8 +259,7 @@ bool RMupdaterFrame::DownloadUpdateFiles()
 	SetTtlProcLabel(wxEmptyString);
 	m_statusBarInfo->SetStatusText(_T("更新文件下载完成"));
 
-	// 调用应用更新的函数进行文件覆盖更新
-	return ApplyUpdates();
+	return true;
 }
 
 bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
@@ -538,6 +549,19 @@ bool RMupdaterFrame::ApplyUpdates()
 	long buffer_size;
 	FILE* fp;
 
+#if defined(__WXMSW__)
+    // 对付Windows下下载回来的文件不正确的临时解决方案
+    m_buttonStart->Enable(false);
+    SetCurProcLabel(_("正在校验更新文件..."));
+    for (i = 0; i < 2; i++) {
+        if (DownloadUpdateFiles()) break;
+    }
+    if (i == 2) {
+        wxMessageDialog(this, _("校验更新文件失败"), _("错误"), wxICON_EXCLAMATION | wxOK).ShowModal();
+        return false;
+    }
+#endif
+
 	// 设置交互界面
 	wxString tipinfo;
 	tipinfo = _T("当前进度：正在用更新文件覆盖旧文件");
@@ -678,13 +702,15 @@ void RMupdaterFrame::CleanUpUpdate()
 	rename("Game.rgss2a.new", packname);
 
 	// 删除临时文件目录
+#ifndef DEBUG
 #if defined(__WXMSW__)
-//	WinExec("cmd.exe /C rmdir .tmp /Q /S", SW_HIDE);
+	WinExec("cmd.exe /C rmdir .tmp /Q /S", SW_HIDE);
 #elif defined(__UNIX__)
 	char cmd[] = "rm -rf '.tmp'";
 	printf("删除临时文件目录: %s", cmd);
 	system(cmd);
 	printf("\t删除完成\n");
+#endif
 #endif
 }
 
@@ -818,4 +844,3 @@ void RMupdaterFrame::ApplyNotUpdateRgss2a(file_list_t& list)
 		free(filename);
 	}
 }
-
