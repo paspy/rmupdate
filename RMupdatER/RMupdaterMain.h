@@ -42,6 +42,9 @@ class RMupdaterFrame: public FrameUpdater
 		version_t LocalVer;
 		version_t ServerVer;
 
+		file_list_t ServerList;
+		file_list_t LocalList;
+
         void OnClose(wxCloseEvent& event);
         void OnQuit(wxCommandEvent& event);
         void OnCheck(wxCommandEvent& event);
