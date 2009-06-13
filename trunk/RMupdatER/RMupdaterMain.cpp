@@ -447,8 +447,6 @@ void RMupdaterFrame::CheckNewest()
     		TiXmlHandle* hDocL;
     		wxString TiErrInfo;
 			wxString ErrInfoL;
-			file_list_t ServerList;
-			file_list_t LocalList;
 
 			// --载入服务器最新列表
 			docl = new TiXmlDocument;
@@ -578,9 +576,15 @@ bool RMupdaterFrame::ApplyUpdates()
 	// 先将没有更新的资源包的文件重新写入一次
 	rg_read = new rgss2a;
 	if (rg_read->OpenRgss2aFile("Game.rgss2a") || rg_read->OpenRgss2aFile("Game.rgssad")) {
-		ApplyNotUpdateRgss2a(list);
+		m_statusBarInfo->SetStatusText(_("正在处理原资源包中的文件..."));
+		Update();
+
+		ApplyNotUpdateRgss2a(ServerList);
 	}
 	delete rg_read;
+
+	m_statusBarInfo->SetStatusText(_("正在应用更新文件..."));
+	Update();
 
 	files_count = list.DesPath.GetCount();
 	for (i = 0; i < files_count; i++) {
@@ -638,6 +642,9 @@ bool RMupdaterFrame::ApplyUpdateFile(const char* despath, void* content, long co
 {
 	char* despath_lower;
 	printf("应用更新：%s\n", despath);
+#ifdef DEBUG
+	printf("==[%s](%ld) content_size=%ld\n", __func__, __LINE__, content_size);
+#endif
 
 	// 对于需要打包的文件和不需要打包的文件要分开处理
 	despath_lower = strtolower(despath);
@@ -819,17 +826,31 @@ wxString RMupdaterFrame::HumanReadSize(double speed_bytes)
 void RMupdaterFrame::ApplyNotUpdateRgss2a(file_list_t& list)
 {
 	void* content;
-	unsigned long content_size, i;
+	unsigned long content_size, i, k;
 	char* filename;
 
 	if (!rg_read) wxASSERT(_("rg_read 未初始化"));
 
 	while (rg_read->ReadSubFile(filename, content, content_size)) {
-		for (i = 0; i < list.DesPath.GetCount(); i++) {
-			if (strcmp(list.DesPath[i].mb_str(wxConvLibc), filename) == 0) break;
+		wxString PackName;
+		PackName = wxString(filename, wxConvUTF8);
+		char packname[2048];
+
+		strcpy(packname, PackName.mb_str(wxConvUTF8));
+		for (k = 0; k < strlen(packname); k++) {
+			if (packname[k] == '\\') packname[k] = '/';
 		}
 
-		if (i == list.DesPath.GetCount()) {
+		for (i = 0; i < list.DesPath.GetCount(); i++) {
+			char listname[2048];
+			strcpy(listname, list.DesPath[i].mb_str(wxConvUTF8));
+
+			printf("比较字符串\n--源：%s\n--包：%s\n", listname, packname);
+			if (strcmp(listname, packname) == 0) break;
+		}
+
+		// 如果在服务器列表中发现与该文件匹配的记录，则说明这个文件是需要的
+		if (i != list.DesPath.GetCount()) {
 			// 把读出来的文件名中的反斜线换成斜线
 			unsigned long k;
 			for (k = 0; k < strlen(filename); k++) {
