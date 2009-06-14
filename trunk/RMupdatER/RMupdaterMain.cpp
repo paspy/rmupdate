@@ -118,7 +118,13 @@ void RMupdaterFrame::OnCheck(wxCommandEvent& event)
 
 void RMupdaterFrame::OnUpdate(wxCommandEvent& event)
 {
-    DownloadUpdateFiles();
+	m_buttonStart->Enable(false);
+
+    if (!DownloadUpdateFiles()) {
+    	m_buttonUpdate->Enable(true);
+    	m_buttonStart->Enable(true);
+		return;
+    }
 
 	if (ApplyUpdates()) {
 		// 更奔本地版本信息
@@ -134,6 +140,7 @@ void RMupdaterFrame::OnUpdate(wxCommandEvent& event)
 	else {
 	    m_statusBarInfo->SetStatusText(_("更新失败"));
 	    m_buttonUpdate->Enable(true);
+	    m_buttonStart->Enable(true);
 	}
 }
 
@@ -198,7 +205,6 @@ bool RMupdaterFrame::DownloadUpdateFiles()
 
 	//依次下载
 	for (i = 0; i < list.DesPath.GetCount(); i++) {
-		FILE* fp;
 		char path[2000];
 		char* name_enc;
 
@@ -211,47 +217,29 @@ bool RMupdaterFrame::DownloadUpdateFiles()
     #endif
 		free(name_enc);
 
-		fp = fopen(path, "rb");
-		printf("读取文件进行检查：%s\n", path);
+		// 校验文件，并下载
+		wxString info;
 
-        wxString info;
-    #ifdef RMUPDATE_ENCRYPT_FILE
-        info.Printf(_("正在检查第%1$lu个临时文件（共%2$lu个）"), i, list.DesPath.GetCount());
-    #else
-        info.Printf(_("正在检查临时文件：") + list.DesPath[i]);
-    #endif
-        m_statusBarInfo->SetStatusText(info);
+	#ifdef RMUPDATE_ENCRYPT_FILE
+		info.Printf(_("正在检查第%1$lu个临时文件（共%2$lu个）"), i, list.DesPath.GetCount());
+	#else
+		info.Printf(_("正在检查临时文件：") + list.DesPath[i]);
+	#endif
+		m_statusBarInfo->SetStatusText(info);
 
-		if (!fp) {
-		    printf("--文件不存在，进行下载");
-			if (!DownloadUpdateFile(list, i)) return false;
-		}
-		else {
-			//如果文件存在，则检查文件是否是正确的文件
-			printf("--文件已经存在，进行检查\n");
-			void* buffer;
-			long buffer_size;
-			char md5str[33];
+		char md5[33];
+		int try_times;
 
-			fseek(fp, 0, SEEK_END);
-			buffer_size = ftell(fp);
-			fseek(fp, 0, SEEK_SET);
+		try_times = 3;
+		strcpy(md5, list.md5[i].mb_str());
 
-			buffer = malloc(buffer_size);
-			fread(buffer, buffer_size, 1, fp);
-			md5hash(buffer, buffer_size, md5str);
-
-			//如果哈希值不符，则从重新下载改文件
-			char tmp[33];
-			strcpy(tmp, list.md5[i].mb_str());
-			printf("--两个哈希值：\n----%s\n----%s\n", md5str, tmp);
-			if (strcmp(md5str, list.md5[i].mb_str()) != 0) {
-				if (!DownloadUpdateFile(list, i)) return false;
-			}
-
-			fclose(fp);
+		while (!HashFile(path, md5)) {
+			DownloadUpdateFile(list, i);
+			printf("--try_time=%d\n", try_times);
+			if (--try_times < 0) return false;
 		}
 
+		// 设置界面
 		m_gaugeTotal->SetValue((i + 1) * 100 / list.DesPath.GetCount());
 	}
 
@@ -546,19 +534,6 @@ bool RMupdaterFrame::ApplyUpdates()
 	void* buffer;
 	long buffer_size;
 	FILE* fp;
-
-#if defined(__WXMSW__)
-    // 对付Windows下下载回来的文件不正确的临时解决方案
-    m_buttonStart->Enable(false);
-    SetCurProcLabel(_("正在校验更新文件..."));
-    for (i = 0; i < 2; i++) {
-        if (DownloadUpdateFiles()) break;
-    }
-    if (i == 2) {
-        wxMessageDialog(this, _("校验更新文件失败"), _("错误"), wxICON_EXCLAMATION | wxOK).ShowModal();
-        return false;
-    }
-#endif
 
 	// 设置交互界面
 	wxString tipinfo;
@@ -864,4 +839,42 @@ void RMupdaterFrame::ApplyNotUpdateRgss2a(file_list_t& list)
 		free(content);
 		free(filename);
 	}
+}
+
+bool RMupdaterFrame::HashFile(const char* path, const char md5[33])
+{
+	FILE* fp;
+	file_list_t list = wxGetApp().GetUpdateFileList();
+
+	fp = fopen(path, "rb");
+	printf("读取文件进行检查：%s\n", path);
+
+	if (fp == NULL) {
+	    printf("--%s: 文件不存在，返回false\n", __func__);
+		return false;
+	}
+	else {
+		//如果文件存在，则检查文件是否是正确的文件
+		printf("--%s: 文件已经存在，进行检查\n", __func__);
+		void* buffer;
+		long buffer_size;
+		char md5str[33];
+
+		fseek(fp, 0, SEEK_END);
+		buffer_size = ftell(fp);
+		fseek(fp, 0, SEEK_SET);
+
+		buffer = malloc(buffer_size);
+		fread(buffer, buffer_size, 1, fp);
+		md5hash(buffer, buffer_size, md5str);
+		free(buffer);
+
+		//如果哈希值不符，则从重新下载改文件
+		printf("--%s: 两个哈希值：\n----%s\n----%s\n", md5str, md5, __func__);
+		if (strcmp(md5str, md5) != 0) return false;
+
+		fclose(fp);
+	}
+
+	return true;
 }
