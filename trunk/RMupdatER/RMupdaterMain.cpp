@@ -275,6 +275,7 @@ bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
 	if (fp == NULL) {
 		m_statusBarInfo->SetStatusText(_T("无法以写模式打开临时文件"));
 		printf("can not open file to write: %s\n", filepath);
+		free(filename);
 		return false;
 	}
 	printf("--下载保存文件句柄路径:%s\n", filepath);
@@ -306,7 +307,7 @@ bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &RMupdaterFrame::curl_writefunction_downfile);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &curl_in);
 	curl_easy_perform(curl);
-	//curl_easy_cleanup(curl);
+	curl_easy_cleanup(curl);
 
 	free(filename);
 	fclose(fp);
@@ -356,6 +357,8 @@ void RMupdaterFrame::CheckNewest()
     	wxMessageDialog((wxWindow*)this, info, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
     	m_buttonCheck->Enable(true);
     	SetStatus(info);
+
+    	if (curl_in.buffer != NULL) free(curl_in.buffer);
     	return;
     }
     else {
@@ -365,6 +368,7 @@ void RMupdaterFrame::CheckNewest()
 
     	doc.Parse((const char*)curl_in.buffer);
 		free(curl_in.buffer);
+
     	if (doc.ErrorId() != 0) {
     		// 如果载入XML更新信息文件出错
     		wxString info;
@@ -422,6 +426,7 @@ void RMupdaterFrame::CheckNewest()
     		if (buf_current == NULL) buf_current = DownloadUpdateList(0, 0, size_current);
     		if (buf_current == NULL) {
     			m_statusBarInfo->SetStatusText(_T("无法下载当前版本的列表文件"));
+    			free(buf_newest);
     			return;
     		}
 		#ifdef RMUPDATE_ENCRYPT_FILE
@@ -443,6 +448,10 @@ void RMupdaterFrame::CheckNewest()
     			TiErrInfo = wxString(docl->ErrorDesc(), wxConvLibc);
     			ErrInfoL.Printf(_T("载入更新文件列表时发生错误：") + TiErrInfo);
     			wxMessageDialog((wxWindow*)this, ErrInfoL, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
+
+    			free(buf_newest);
+    			free(buf_current);
+
     			return;
     		}
     		hDocL = new TiXmlHandle(docl);
@@ -458,6 +467,10 @@ void RMupdaterFrame::CheckNewest()
     			TiErrInfo = wxString(docl->ErrorDesc(), wxConvLibc);
     			ErrInfoL.Printf(_T("载入当前版本文件列表时发生错误：") + TiErrInfo);
     			wxMessageDialog((wxWindow*)this, ErrInfoL, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
+
+				free(buf_newest);
+    			free(buf_current);
+
     			return;
     		}
     		hDocL = new TiXmlHandle(docl);
@@ -492,6 +505,7 @@ void* RMupdaterFrame::DownloadUpdateList(long AbsVer, long SubAbsVer, size_t& bu
 	config_t config = wxGetApp().GetConfig();
 	char url[1024];
 	char ServerUrl[1024];
+
 	strcpy(ServerUrl, config.ServerPath.mb_str());
 #ifdef RMUPDATE_ENCRYPT_FILE
 	sprintf(url, "%s%ld.%ld.xml.dat", ServerUrl, AbsVer, SubAbsVer);
@@ -517,6 +531,7 @@ void* RMupdaterFrame::DownloadUpdateList(long AbsVer, long SubAbsVer, size_t& bu
 		info.Printf(_T("下载更新列表文件时发生错误，HTTP错误代码：%ld"), http_code);
 		wxMessageDialog((wxWindow*)this, info, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
 		SetStatus(info);
+		free(curl_in.buffer);
 		return NULL;
 	}
 
@@ -575,6 +590,7 @@ bool RMupdaterFrame::ApplyUpdates()
 		// 加密文件名
 		enc_filename = encrypt_file_path(list.DesPath[i].mb_str(wxConvUTF8));
 		sprintf(filename, ".tmp/%s.dat", enc_filename);
+		free (enc_filename);
 
 		// 设置读文件句柄
 		fp = fopen(filename, "rb");
@@ -603,7 +619,6 @@ bool RMupdaterFrame::ApplyUpdates()
 
 		// 结束释放内存
 		free (buffer);
-		free (enc_filename);
 		fclose(fp);
 	}
 
@@ -652,6 +667,7 @@ bool RMupdaterFrame::ApplyUpdateFile(const char* despath, void* content, long co
 			printf("无法打开文件进行写入：%s\n", despath);
 			wxMessageDialog((wxWindow*)this, _T("无法以写模式打开文件：") + wxString(despath, wxConvLibc), _T("应用更新时发生错误"), wxICON_EXCLAMATION | wxID_OK).ShowModal();
 			fclose(fp);
+			free(despath_lower);
 			return false;
 		}
 
