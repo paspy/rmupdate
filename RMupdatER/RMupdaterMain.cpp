@@ -883,13 +883,13 @@ bool RMupdaterFrame::HashFile(const char* path, const char md5[33])
 		buffer = malloc(buffer_size);
 		fread(buffer, buffer_size, 1, fp);
 		md5hash(buffer, buffer_size, md5str);
+
 		free(buffer);
+		fclose(fp);
 
 		//如果哈希值不符，则从重新下载改文件
 		printf("--%s: 两个哈希值：\n----%s\n----%s\n", md5str, md5, __func__);
 		if (strcmp(md5str, md5) != 0) return false;
-
-		fclose(fp);
 	}
 
 	return true;
