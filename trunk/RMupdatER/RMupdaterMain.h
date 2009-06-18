@@ -67,7 +67,7 @@ class RMupdaterFrame: public FrameUpdater
         void SetCurProcLabel(const wxString& info);
         void SetTtlProcLabel(const wxString& info);
         static wxString HumanReadSize(double speed_bytes);
-        void ApplyNotUpdateRgss2a(file_list_t& list);
+        void ApplyNotUpdateRgss2a(file_list_t& ServerList, file_list_t& UpdateList);
         bool HashFile(const char* path, const char md5[33]);
 };
 
