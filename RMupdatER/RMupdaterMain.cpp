@@ -51,6 +51,15 @@ char* strtolower(const char* str){
 	return ret;
 }
 
+void converttolower(char* str){
+	register unsigned long i;
+	for (i = 0; i < strlen(str); i++) {
+		if (str[i] >= 'A' && str[i] <= 'Z') {
+			str[i] += 32;
+		}
+	}
+}
+
 RMupdaterFrame::RMupdaterFrame(wxFrame *frame, const wxString& title)
     : FrameUpdater(frame, -1, title)
 {
@@ -569,7 +578,9 @@ bool RMupdaterFrame::ApplyUpdates()
 		m_statusBarInfo->SetStatusText(_("正在处理原资源包中的文件..."));
 		Update();
 
-		ApplyNotUpdateRgss2a(ServerList);
+		file_list_t UpList;
+		UpList = wxGetApp().GetUpdateFileList();
+		ApplyNotUpdateRgss2a(ServerList, UpList);
 	}
 	delete rg_read;
 
@@ -633,7 +644,7 @@ bool RMupdaterFrame::ApplyUpdateFile(const char* despath, void* content, long co
 	char* despath_lower;
 	printf("应用更新：%s\n", despath);
 #ifdef DEBUG
-	printf("==[%s](%ld) content_size=%ld\n", __func__, __LINE__, content_size);
+	printf("==[%s](%d) content_size=%ld\n", __func__, __LINE__, content_size);
 #endif
 
 	// 对于需要打包的文件和不需要打包的文件要分开处理
@@ -709,7 +720,10 @@ void RMupdaterFrame::CleanUpUpdate()
 	system(cmd);
 	printf("\t删除完成\n");
 #endif
+#else
+	printf("DEBUG版本不会删除临下载的临时文件\n");
 #endif
+
 }
 
 size_t RMupdaterFrame::curl_writefunction_check(void *ptr, size_t size, size_t nmemb, void *stream)
@@ -814,34 +828,69 @@ wxString RMupdaterFrame::HumanReadSize(double speed_bytes)
 	return r;
 }
 
-void RMupdaterFrame::ApplyNotUpdateRgss2a(file_list_t& list)
+void RMupdaterFrame::ApplyNotUpdateRgss2a(file_list_t& ServerList, file_list_t& UpdateList)
 {
 	void* content;
 	unsigned long content_size, i, k;
 	char* filename;
+	bool isInServerList, isInUpdateList;
+	char servernames[ServerList.DesPath.GetCount()][2048];
+	char updatenames[UpdateList.DesPath.GetCount()][2048];
 
 	if (!rg_read) wxASSERT(_("rg_read 未初始化"));
 
+	// 将列表里面的文件读进普通字符串数组
+	for (i = 0; i < ServerList.DesPath.GetCount(); i++) {
+		strcpy(servernames[i], ServerList.DesPath[i].mb_str(wxConvUTF8));
+		converttolower(servernames[i]);
+		for (k = 0; k < strlen(servernames[i]); k++) {
+			if (servernames[i][k] == '\\') servernames[i][k] = '/';
+		}
+	}
+	for (i = 0; i < UpdateList.DesPath.GetCount(); i++) {
+		strcpy(updatenames[i], UpdateList.DesPath[i].mb_str(wxConvUTF8));
+		converttolower(updatenames[i]);
+		for (k = 0; k < strlen(updatenames[i]); k++) {
+			if (updatenames[i][k] == '\\') updatenames[i][k] = '/';
+		}
+	}
+
+	// 依次读取旧资源包里面的文件进行检查
 	while (rg_read->ReadSubFile(filename, content, content_size)) {
 		wxString PackName;
 		PackName = wxString(filename, wxConvUTF8);
 		char packname[2048];
 
 		strcpy(packname, PackName.mb_str(wxConvUTF8));
+		converttolower(packname);
+
 		for (k = 0; k < strlen(packname); k++) {
 			if (packname[k] == '\\') packname[k] = '/';
 		}
 
-		for (i = 0; i < list.DesPath.GetCount(); i++) {
-			char listname[2048];
-			strcpy(listname, list.DesPath[i].mb_str(wxConvUTF8));
-
-			printf("比较字符串\n--源：%s\n--包：%s\n", listname, packname);
-			if (strcmp(listname, packname) == 0) break;
+		// 检查该文件是否在更新列表中
+		isInUpdateList = false;
+		for (i = 0; i < UpdateList.DesPath.GetCount(); i++) {
+			if (strcmp(updatenames[i], packname) == 0) {
+				isInUpdateList = true;
+				break;
+			}
 		}
 
-		// 如果在服务器列表中发现与该文件匹配的记录，则说明这个文件是需要的
-		if (i != list.DesPath.GetCount()) {
+		// 检查该文件是否在服务器列表中
+		isInServerList = false;
+		if (!isInUpdateList) {
+			for (i = 0; i < ServerList.DesPath.GetCount(); i++) {
+				//printf("比较字符串\n--源：%s\n--包：%s\n", servernames[i], packname);
+				if (strcmp(servernames[i], packname) == 0) {
+					isInServerList = true;
+					break;
+				}
+			}
+		}
+
+		// 只需要写入即在服务器更新列表中，又不需要更新的文件
+		if (isInServerList && !isInUpdateList) {
 			// 把读出来的文件名中的反斜线换成斜线
 			unsigned long k;
 			for (k = 0; k < strlen(filename); k++) {
