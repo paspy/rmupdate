@@ -47,6 +47,7 @@ char* strtolower(const char* str){
 			ret[i] = str[i];
 		}
 	}
+    ret[i] = 0;
 
 	return ret;
 }
@@ -561,7 +562,7 @@ bool RMupdaterFrame::ApplyUpdates()
 
 	// 设置交互界面
 	wxString tipinfo;
-	tipinfo = _T("当前进度：正在用更新文件覆盖旧文件");
+	tipinfo = _T("正在用更新文件覆盖旧文件");
 	m_buttonStart->Enable(false);
 	m_gaugeTotal->SetValue(0);
 	m_gaugeCurrent->SetValue(0);
@@ -625,7 +626,12 @@ bool RMupdaterFrame::ApplyUpdates()
 		decrypt_file_content(buffer, buffer_size, tmplong);
 	#endif
 
-		strcpy(filename_des, list.DesPath[i].mb_str(wxConvLibc));
+		strcpy(filename_des, list.DesPath[i].mb_str(wxConvUTF8));
+		//  先替换反斜线
+		unsigned long k;
+		for (k = 0; k < strlen(filename_des); k++) {
+		    if (filename_des[k] == '\\') filename_des[k] = '/';
+		}
 		ApplyUpdateFile(filename_des, buffer, buffer_size);
 
 		// 结束释放内存
@@ -654,12 +660,7 @@ bool RMupdaterFrame::ApplyUpdateFile(const char* despath, void* content, long co
 		strstr(despath_lower, "graphics/") == despath_lower
 	){
 		printf("--写入到rgss2a文件\n");
-    #if defined(__WXMSW__)
-		wxString des(despath, wxConvLibc);
-		rg_write->WriteSubFile((const char*)des.mb_str(wxConvUTF8), content, content_size);
-    #else
         rg_write->WriteSubFile(despath, content, content_size);
-    #endif
 	}
 	else {
 		// 设置写文件句柄
@@ -742,7 +743,7 @@ size_t RMupdaterFrame::curl_writefunction_check(void *ptr, size_t size, size_t n
 	//初始化缓冲区
     if (in->buffer == NULL) {
     	printf("[curl_writefunction_check] init buffer for recive, malloc size=%lf\n", content_length + 1);
-    	in->buffer = malloc(content_length + 1);
+    	in->buffer = malloc((int)content_length + 1);
     	in->buffer_ptr = 0;
     }
 
@@ -759,7 +760,7 @@ size_t RMupdaterFrame::curl_writefunction_check(void *ptr, size_t size, size_t n
 				(const wchar_t*)HumanReadSize(in->buffer_ptr).wc_str()
 	);
     pFrameUpdater->SetStatus(info);
-    pFrameUpdater->m_gaugeCurrent->SetValue(in->buffer_ptr * 100 / content_length);
+    pFrameUpdater->m_gaugeCurrent->SetValue(in->buffer_ptr * 100 / (int)content_length);
     pFrameUpdater->m_gaugeCurrent->Update();
 
     return read_size;
@@ -794,7 +795,7 @@ size_t RMupdaterFrame::curl_writefunction_downfile(void *ptr, size_t size, size_
 				(const wchar_t*)HumanReadSize(speed_download).wc_str()
 	);
 	pFrameUpdater->SetStatus(info);
-	pFrameUpdater->m_gaugeCurrent->SetValue(size_down * 100 / content_length);
+	pFrameUpdater->m_gaugeCurrent->SetValue(size_down * 100 / (int)content_length);
 	pFrameUpdater->Update();
 	wxGetApp().Yield();
 
@@ -860,7 +861,7 @@ void RMupdaterFrame::ApplyNotUpdateRgss2a(file_list_t& ServerList, file_list_t& 
 		wxString PackName;
 		PackName = wxString(filename, wxConvUTF8);
 		char packname[2048];
-
+//printf("判断包里面的文件是否存在：%s\n", filename);
 		strcpy(packname, PackName.mb_str(wxConvUTF8));
 		converttolower(packname);
 
@@ -887,7 +888,7 @@ void RMupdaterFrame::ApplyNotUpdateRgss2a(file_list_t& ServerList, file_list_t& 
 					break;
 				}
 			}
-		}
+    }
 
 		// 只需要写入即在服务器更新列表中，又不需要更新的文件
 		if (isInServerList && !isInUpdateList) {
@@ -896,7 +897,7 @@ void RMupdaterFrame::ApplyNotUpdateRgss2a(file_list_t& ServerList, file_list_t& 
 			for (k = 0; k < strlen(filename); k++) {
 				if (filename[k] == '\\') filename[k] = '/';
 			}
-
+//printf("--写入包里面的文件：%s\n", filename);
 			ApplyUpdateFile(filename, content, content_size);
 		}
 
