@@ -122,36 +122,16 @@ void RMupdaterFrame::OnConfig(wxCommandEvent& event)
 
 void RMupdaterFrame::OnCheck(wxCommandEvent& event)
 {
-    m_buttonCheck->Enable(false);
     CheckNewest();
 }
 
 void RMupdaterFrame::OnUpdate(wxCommandEvent& event)
 {
-	m_buttonStart->Enable(false);
-
     if (!DownloadUpdateFiles()) {
-    	m_buttonUpdate->Enable(true);
-    	m_buttonStart->Enable(true);
 		return;
     }
 
-	if (ApplyUpdates()) {
-		// 更奔本地版本信息
-		wxGetApp().UpdateVersionInfo(ServerVer);
-
-		// 更改资源名，删除临时文件
-		CleanUpUpdate();
-		m_buttonStart->Enable(true);
-		m_buttonUpdate->Enable(false);
-		m_buttonCheck->Enable(false);
-		m_statusBarInfo->SetStatusText(_T("更新完成"));
-	}
-	else {
-	    m_statusBarInfo->SetStatusText(_("更新失败"));
-	    m_buttonUpdate->Enable(true);
-	    m_buttonStart->Enable(true);
-	}
+	ApplyUpdates();
 }
 
 // 减少代码量的宏，用于在信息文本框上显示信息
@@ -205,6 +185,7 @@ bool RMupdaterFrame::DownloadUpdateFiles()
 	file_list_t list = wxGetApp().GetUpdateFileList();
 
 	m_buttonUpdate->Enable(false);
+	m_buttonStart->Enable(false);
 
 	//重制界面
 	m_gaugeCurrent->SetValue(0);
@@ -246,7 +227,11 @@ bool RMupdaterFrame::DownloadUpdateFiles()
 		while (!HashFile(path, md5)) {
 			DownloadUpdateFile(list, i);
 			printf("--try_time=%d\n", try_times);
-			if (--try_times < 0) return false;
+			if (--try_times < 0) {
+				m_buttonUpdate->Enable(true);
+				m_buttonStart->Enable(true);
+				return false;
+			}
 		}
 
 		// 设置界面
@@ -336,11 +321,14 @@ bool RMupdaterFrame::DownloadUpdateFile(file_list_t& list, unsigned long i)
 	return true;
 }
 
-void RMupdaterFrame::CheckNewest()
+bool RMupdaterFrame::CheckNewest()
 {
     writefunction_in_t curl_in;
     char url[1024];
 	config_t config = wxGetApp().GetConfig();
+
+	// 设置界面
+	m_buttonCheck->Enable(false);
 
     CURL* curl = curl_easy_init();
     curl_in.curl = curl;
@@ -369,7 +357,7 @@ void RMupdaterFrame::CheckNewest()
     	SetStatus(info);
 
     	if (curl_in.buffer != NULL) free(curl_in.buffer);
-    	return;
+    	return false;
     }
     else {
     	TiXmlDocument doc;
@@ -388,7 +376,7 @@ void RMupdaterFrame::CheckNewest()
     		wxMessageDialog((wxWindow*)this, info, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
     		m_buttonCheck->Enable(true);
     		SetStatus(info);
-    		return;
+    		return false;
     	}
     	else {
     		// 成功载入XML更新信息文件
@@ -424,7 +412,7 @@ void RMupdaterFrame::CheckNewest()
 
 			// 下载最新列表和当前列表，如果当前列表不存在则使用默认值
     		buf_newest = DownloadUpdateList(ServerVer.AbsVer, ServerVer.SubAbsVer, size_newest);
-    		if (buf_newest == NULL) return;
+    		if (buf_newest == NULL) return false;
 		#ifdef RMUPDATE_ENCRYPT_FILE
 			long tmplong;
 			decrypt_file_content(buf_newest, size_newest, tmplong);
@@ -437,7 +425,7 @@ void RMupdaterFrame::CheckNewest()
     		if (buf_current == NULL) {
     			m_statusBarInfo->SetStatusText(_T("无法下载当前版本的列表文件"));
     			free(buf_newest);
-    			return;
+    			return false;
     		}
 		#ifdef RMUPDATE_ENCRYPT_FILE
 			decrypt_file_content(buf_current, size_current, tmplong);
@@ -462,7 +450,7 @@ void RMupdaterFrame::CheckNewest()
     			free(buf_newest);
     			free(buf_current);
 
-    			return;
+    			return false;
     		}
     		hDocL = new TiXmlHandle(docl);
     		wxGetApp().LoadUpdateFileList(hDocL, ServerList);
@@ -481,7 +469,7 @@ void RMupdaterFrame::CheckNewest()
 				free(buf_newest);
     			free(buf_current);
 
-    			return;
+    			return false;
     		}
     		hDocL = new TiXmlHandle(docl);
     		wxGetApp().LoadUpdateFileList(hDocL, LocalList);
@@ -497,15 +485,20 @@ void RMupdaterFrame::CheckNewest()
     		info.Printf(_T("需要更新%ld个文件"), wxGetApp().GetUpdateFileList().DesPath.GetCount());
     		m_statusBarInfo->SetStatusText(info);
     		m_buttonUpdate->Enable(true);
+
+    		RefreshUpdateInfo(ServerVer);
+    		return true;
     	}
     	else {
     		//没有更新
     		SetStatus(_T("已经是最新版本了"));
     		m_gaugeTotal->SetValue(100);
-    	}
 
-    	RefreshUpdateInfo(ServerVer);
+    		RefreshUpdateInfo(ServerVer);
+    		return false;
+    	}
 	}
+
 }
 
 
@@ -539,7 +532,7 @@ void* RMupdaterFrame::DownloadUpdateList(long AbsVer, long SubAbsVer, size_t& bu
 	if (http_code != 200 && http_code != 206) {
 		wxString info;
 		info.Printf(_T("下载更新列表文件时发生错误，HTTP错误代码：%ld"), http_code);
-		wxMessageDialog((wxWindow*)this, info, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
+		if (!wxGetApp().ArgvSet.NoGui) wxMessageDialog((wxWindow*)this, info, _T("错误"), wxOK | wxICON_EXCLAMATION).ShowModal();
 		SetStatus(info);
 		free(curl_in.buffer);
 		return NULL;
@@ -607,9 +600,16 @@ bool RMupdaterFrame::ApplyUpdates()
 		// 设置读文件句柄
 		fp = fopen(filename, "rb");
 		if (!fp) {
+			// 操作失败了
 			printf("无法打开文件：%s\n", filename);
 			wxMessageDialog((wxWindow*)this, _T("无法打开文件：") + wxString(filename, wxConvLibc), _T("应用更新时发生错误"), wxICON_EXCLAMATION | wxID_OK).ShowModal();
 			m_statusBarInfo->SetStatusText(_T("应用更新失败"));
+
+			// 重置界面并返回假
+			m_statusBarInfo->SetStatusText(_("更新失败"));
+			m_buttonUpdate->Enable(true);
+			m_buttonStart->Enable(true);
+
 			return false;
 		}
 		else {
@@ -640,8 +640,18 @@ bool RMupdaterFrame::ApplyUpdates()
 	}
 
 	SetCurProcLabel(_(""));
-
 	delete(rg_write);
+
+	// 更奔本地版本信息，更改资源名，删除临时文件
+	wxGetApp().UpdateVersionInfo(ServerVer);
+	CleanUpUpdate();
+
+	// 重置界面
+	m_buttonStart->Enable(true);
+	m_buttonUpdate->Enable(false);
+	m_buttonCheck->Enable(false);
+	m_statusBarInfo->SetStatusText(_T("更新完成"));
+
 	return true;
 }
 
@@ -943,4 +953,36 @@ bool RMupdaterFrame::HashFile(const char* path, const char md5[33])
 	}
 
 	return true;
+}
+
+
+void RMupdaterFrame::AutomaticAction()
+{
+	bool flag;
+	argv_t a = wxGetApp().ArgvSet;
+
+	flag = false;
+	if (a.AutoCheck && (a.ForceCheck || wxGetApp().TimeToCheck())) {
+		flag = CheckNewest();
+	}
+
+	Update();
+	wxGetApp().Yield();
+	if (a.AutoUpdate && flag && m_buttonUpdate->IsEnabled()) {
+		flag = DownloadUpdateFiles();
+	}
+
+	if (a.AutoApply && a.AutoUpdate && flag) {
+		flag = ApplyUpdates();
+	}
+
+	if (a.AutoStart) {
+		wxCommandEvent e;
+		OnStart(e);
+	}
+
+	if (a.AutoExit) {
+		exit(0);
+	}
+
 }

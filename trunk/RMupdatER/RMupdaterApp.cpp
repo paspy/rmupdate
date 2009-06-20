@@ -29,6 +29,8 @@ bool RMupdaterApp::OnInit()
 	printf("RMupdater 普通版\n");
 #endif
 
+	LoadArgv();
+
 	// 载入程序图标
 	wxInitAllImageHandlers();
 	wxBitmap bitmap(_T("icon.png"), wxBITMAP_TYPE_PNG);
@@ -41,9 +43,64 @@ bool RMupdaterApp::OnInit()
 	}
 
     frame = new RMupdaterFrame(0L, _T("RMupdater"));
-    frame->Show();
+    if (!ArgvSet.NoGui) frame->Show();
+
+	// 根据参数进行自动操作
+	pFrameUpdater->Update();
+	Yield();
+    pFrameUpdater->AutomaticAction();
 
     return true;
+}
+
+void RMupdaterApp::LoadArgv()
+{
+	int i;
+	wxString a;
+
+	ArgvSet.NoGui = ArgvSet.AutoCheck = ArgvSet.ForceCheck = ArgvSet.AutoUpdate
+	= ArgvSet.AutoApply = ArgvSet.AutoStart = false;
+
+	for (i = 0; i < argc; i++) {
+		a = argv[i];
+
+		if (a == _T("/n") || a == _T("--no-gui")) {
+			ArgvSet.NoGui = true;
+			printf("接受参数，设置为无界面模式\n");
+			continue;
+		}
+		if (a == _T("/c") || a == _T("--auto-check")) {
+			ArgvSet.AutoCheck = true;
+			printf("接受参数，设置为自动检查更新模式\n");
+			continue;
+		}
+		if (a == _T("/f") || a == _T("--force-check")) {
+			ArgvSet.ForceCheck = true;
+			printf("接受参数，设置为强制检查更新模式\n");
+			continue;
+		}
+		if (a == _T("/u") || a == _T("--auto-update")) {
+			printf("接受参数，设置为自动下载更新模式\n");
+			ArgvSet.AutoUpdate = true;
+			continue;
+		}
+		if (a == _T("/a") || a == _T("--auto-apply")) {
+			ArgvSet.AutoApply = true;
+			printf("接受参数，设置为自动应用更新模式\n");
+			continue;
+		}
+		if (a == _T("/s") || a == _T("--auto-start")) {
+			ArgvSet.AutoStart = true;
+			printf("接受参数，设置为自动启动游戏模式\n");
+			continue;
+		}
+		if (a == _T("/e") || a == _T("--auto-exit")) {
+			ArgvSet.AutoExit = true;
+			printf("接受参数，设置为自动退出模式\n");
+			continue;
+		}
+
+	}//for循环结束
 }
 
 config_t RMupdaterApp::GetConfig()
@@ -196,3 +253,20 @@ void RMupdaterApp::CompareUpdateList(file_list_t& ServerList, file_list_t& Local
 		}
 	}
 }
+
+bool RMupdaterApp::TimeToCheck()
+{
+	config_t c;
+	time_t ts;
+
+	c = GetConfig();
+	ts = time(NULL);
+
+	if (ts - c.LastCheckTime >= c.CheckInterval * 86400) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
