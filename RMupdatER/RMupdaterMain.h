@@ -35,6 +35,8 @@ class RMupdaterFrame: public FrameUpdater
     public:
         RMupdaterFrame(wxFrame *frame, const wxString& title);
         ~RMupdaterFrame();
+
+        void AutomaticAction();
     private:
 		rgss2a* rg_write;
 		rgss2a* rg_read;
@@ -53,7 +55,7 @@ class RMupdaterFrame: public FrameUpdater
         void OnStart(wxCommandEvent& event);
 
         void SetStatus(wxString info);
-        void CheckNewest();
+        bool CheckNewest();
         bool ApplyUpdates();
         void CleanUpUpdate();
         static size_t curl_writefunction_check(void *ptr, size_t size, size_t nmemb, void *stream);

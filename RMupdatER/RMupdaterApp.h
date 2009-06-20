@@ -35,6 +35,15 @@ struct file_list_t{
 	wxArrayInt size;
 };
 
+struct argv_t{
+	bool NoGui;
+	bool AutoCheck;
+	bool ForceCheck;
+	bool AutoUpdate;
+	bool AutoApply;
+	bool AutoStart;
+	bool AutoExit;
+};
 
 class RMupdaterApp : public wxApp
 {
@@ -42,11 +51,13 @@ class RMupdaterApp : public wxApp
 		config_t config;
 		bool LoadConfig();
 		file_list_t UpdateList;
+		void LoadArgv();
 
     public:
         virtual bool OnInit();
 
         FrameUpdater* frame;
+        struct argv_t ArgvSet;
 
         config_t GetConfig();
         void SetConfig(config_t c);
@@ -54,6 +65,7 @@ class RMupdaterApp : public wxApp
         void LoadUpdateFileList(TiXmlHandle* hDoc, file_list_t& list);
         void CompareUpdateList(file_list_t& ServerList, file_list_t& LocalList);
         void UpdateVersionInfo(version_t& ver);	//更新本地配置文件的版本号
+        bool TimeToCheck();
         file_list_t GetUpdateFileList();
 
         wxIcon icon;
