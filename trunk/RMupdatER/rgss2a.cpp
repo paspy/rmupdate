@@ -28,7 +28,27 @@ rgss2a::~rgss2a()
 
 long rgss2a::magic_key_E(long magic_key)
 {
-	return magic_key * 7 + 3;
+	return (magic_key << 3) - magic_key + 3;
+}
+
+long rgss2a::magic_key_E_path(long magic_key)
+{
+	return magic_key_E(magic_key);
+}
+
+long rgss2a::magic_key_E_pathsize(long magic_key)
+{
+	return magic_key_E(magic_key);
+}
+
+long rgss2a::magic_key_E_content(long magic_key)
+{
+	return magic_key_E(magic_key);
+}
+
+long rgss2a::magic_key_E_contentsize(long magic_key)
+{
+	return magic_key_E(magic_key);
 }
 
 bool rgss2a::OpenRgss2aFile(const char* path)
@@ -80,21 +100,21 @@ bool rgss2a::ReadSubFile(char* &filename, void* &content, unsigned long& content
 	if (feof(fp_r)) return false;
 
 	path_size ^= magic_key;
-	magic_key = magic_key_E(magic_key);
+	magic_key = magic_key_E_pathsize(magic_key);
 
 	// 文件名
 	filename = (char*)malloc(path_size + 1);
 	fread(filename, path_size, 1, fp_r);
 	for (i = 0; i < path_size; i++) {
 		filename[i] ^= magic_key & 0xff;
-		magic_key = magic_key_E(magic_key);
+		magic_key = magic_key_E_path(magic_key);
 	}
 	filename[path_size] = 0;
-
+	
 	// 文件内容长度
 	fread(&content_size, 4, 1, fp_r);
 	content_size ^= magic_key;
-	magic_key = magic_key_E(magic_key);
+	magic_key = magic_key_E_contentsize(magic_key);
 
 	// 文件内容
 	content = malloc(content_size + 4);
@@ -114,7 +134,7 @@ bool rgss2a::WriteSubFile(const char* filename, void* content, unsigned long con
 	name_length ^= magic_key;
 	fwrite(&name_length, 4, 1, fp_w);
 	name_length ^= magic_key;
-	magic_key = magic_key_E(magic_key);
+	magic_key = magic_key_E_pathsize(magic_key);
 
 	// 文件名
 	name = (char*)malloc(name_length+100);
@@ -122,7 +142,7 @@ bool rgss2a::WriteSubFile(const char* filename, void* content, unsigned long con
 	for (i = 0; i < name_length; i++) {
 		if (name[i] == '/') name[i] = '\\';		// Windwos下的目录是以反斜杠分隔的，斜杠的RM会无法识别
 		name[i] ^= magic_key & 0xff;
-		magic_key = magic_key_E(magic_key);
+		magic_key = magic_key_E_path(magic_key);
 	}
 	fwrite(name, name_length, 1, fp_w);
 	free(name);
@@ -131,7 +151,7 @@ bool rgss2a::WriteSubFile(const char* filename, void* content, unsigned long con
 	content_size ^= magic_key;
 	fwrite(&content_size, 4, 1, fp_w);
 	content_size ^= magic_key;
-	magic_key = magic_key_E(magic_key);
+	magic_key = magic_key_E_contentsize(magic_key);
 
 	// 文件内容
 	encrypt_content(content, content_size, magic_key);
@@ -152,6 +172,6 @@ void rgss2a::encrypt_content(void* buffer, unsigned long buffer_size, long conte
 
 	for (i = 0; i <= (buffer_size -1) / 4; i++) {
 		buf[i] ^= content_magic_key;
-		content_magic_key = magic_key_E(content_magic_key);
+		content_magic_key = magic_key_E_content(content_magic_key);
 	}
 }

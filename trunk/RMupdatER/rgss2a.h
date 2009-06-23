@@ -12,13 +12,19 @@
 
 #define RGSS2A_MAGIC_KEY	0xDEADCAFE
 
+#include "stdlib.h"
+
 class rgss2a{
 	private:
 		FILE* fp_r;
 		FILE* fp_w;
 		long magic_key;
 
-		long magic_key_E(long magic_key_orn);		// E变换
+		static long magic_key_E(long magic_key_orn);		// E变换
+		long magic_key_E_path(long magic_key_orn);
+		long magic_key_E_pathsize(long magic_key_orn);
+		long magic_key_E_content(long magic_key_orn);
+		long magic_key_E_contentsize(long magic_key_orn);
 		void encrypt_content(void* buffer, unsigned long buffer_size, long content_magic_key);
 		
 	public:
