@@ -38,7 +38,7 @@ bool RMupdaterApp::OnInit()
 
 	// 载入配置文件
 	if (!LoadConfig()) {
-		wxMessageDialog((wxWindow*)this, _T("无法载入更新配置文件: update.conf"), _T("错误"), wxOK | wxICON_ERROR).ShowModal();
+	    wxMessageDialog(NULL, _T("无法载入更新配置文件: update.conf"), _T("错误"), wxOK | wxICON_ERROR).ShowModal();
 		exit(1);
 	}
 
@@ -49,7 +49,6 @@ bool RMupdaterApp::OnInit()
 	pFrameUpdater->Update();
 	Yield();
     pFrameUpdater->AutomaticAction();
-
     return true;
 }
 
