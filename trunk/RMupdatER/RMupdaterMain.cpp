@@ -575,7 +575,7 @@ bool RMupdaterFrame::ApplyUpdates()
 
 	// 先将没有更新的资源包的文件重新写入一次
 	rg_read = new rgss2a;
-	if (rg_read->OpenRgss2aFile("Game.rgss2a") || rg_read->OpenRgss2aFile("Game.rgssad")) {
+	if (rg_read->OpenRgss2aFile(RESOURCE_PACK_NAME) || rg_read->OpenRgss2aFile("Game.rgss2a") || rg_read->OpenRgss2aFile("Game.rgssad")) {
 		m_statusBarInfo->SetStatusText(_("正在处理原资源包中的文件..."));
 		Update();
 
@@ -745,7 +745,6 @@ void RMupdaterFrame::CleanUpUpdate()
 	printf("\t删除完成\n");
 #endif
 #else
-#error "DEBUG"
 	printf("DEBUG版本不会删除临下载的临时文件\n");
 #endif
 }
