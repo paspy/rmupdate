@@ -268,4 +268,3 @@ bool RMupdaterApp::TimeToCheck()
 		return false;
 	}
 }
-
