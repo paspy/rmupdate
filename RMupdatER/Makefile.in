@@ -276,9 +276,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-love:
-	./.greendam
-
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RMupdaterApp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RMupdaterConfig.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RMupdaterMain.Po@am__quote@
@@ -742,4 +739,3 @@ uninstall-am: uninstall-binPROGRAMS
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
-

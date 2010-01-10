@@ -25,6 +25,8 @@
 #include "lib/file_encrypt.h"
 #include "rgss2a.h"
 
+#include "config.h"
+
 //helper functions
 enum wxbuildinfoformat {
     short_f, long_f };
@@ -705,7 +707,11 @@ bool RMupdaterFrame::ApplyUpdateFile(const char* despath, void* content, long co
 
 void RMupdaterFrame::CleanUpUpdate()
 {
-	char packname[100];
+#ifdef RESOURCE_PACK_NAME
+    const char* packname = RESOURCE_PACK_NAME;
+    remove(packname);
+#else
+	char packname[100] = {0};
 
 	// 先处理打包的资源文件
 	// --删除原来的资源文件
@@ -716,6 +722,7 @@ void RMupdaterFrame::CleanUpUpdate()
 		remove("Game.rgssad");
 		strcpy(packname, "Game.rgssad");
 	}
+#endif
 
 	// --将新的资源文件改名
 	printf("改名：Game.rgss2a.new --> %s\n", packname);
@@ -728,6 +735,7 @@ void RMupdaterFrame::CleanUpUpdate()
 #elif defined(__UNIX__)
 	char cmd[] = "rm -rf '.tmp'";
 	printf("删除临时文件目录: %s", cmd);
+	fflush(stdout);
 	system(cmd);
 	printf("\t删除完成\n");
 #endif
