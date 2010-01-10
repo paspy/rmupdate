@@ -66,8 +66,12 @@ void converttolower(char* str){
 RMupdaterFrame::RMupdaterFrame(wxFrame *frame, const wxString& title)
     : FrameUpdater(frame, -1, title)
 {
+    wxBitmap bitmap;
+
 	// 设置图标
 	SetIcon(wxGetApp().icon);
+	bitmap.CopyFromIcon(wxIcon(_T("aaaa")));
+	m_bitmapLogo->SetBitmap(bitmap);
 
 	// 设置本地版本信息
 	config_t c;
@@ -331,6 +335,7 @@ bool RMupdaterFrame::CheckNewest()
 
 	// 设置界面
 	m_buttonCheck->Enable(false);
+	SetStatus(_("正在连接服务器..."));
 
     CURL* curl = curl_easy_init();
     curl_in.curl = curl;
@@ -731,7 +736,7 @@ void RMupdaterFrame::CleanUpUpdate()
 	// 删除临时文件目录
 #ifndef DEBUG
 #if defined(__WXMSW__)
-	WinExec("cmd.exe /C rmdir .tmp /Q /S", SW_HIDE);
+	WinExec("cmd.exe /C \"rd .tmp /Q /S\" ", SW_HIDE);
 #elif defined(__UNIX__)
 	char cmd[] = "rm -rf '.tmp'";
 	printf("删除临时文件目录: %s", cmd);
@@ -740,9 +745,9 @@ void RMupdaterFrame::CleanUpUpdate()
 	printf("\t删除完成\n");
 #endif
 #else
+#error "DEBUG"
 	printf("DEBUG版本不会删除临下载的临时文件\n");
 #endif
-
 }
 
 size_t RMupdaterFrame::curl_writefunction_check(void *ptr, size_t size, size_t nmemb, void *stream)

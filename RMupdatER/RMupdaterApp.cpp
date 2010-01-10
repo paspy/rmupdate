@@ -19,6 +19,8 @@
 #include "RMupdaterMain.h"
 #include "ticpp/tinyxml.h"
 
+#include "config.h"
+
 IMPLEMENT_APP(RMupdaterApp);
 
 bool RMupdaterApp::OnInit()
@@ -33,8 +35,7 @@ bool RMupdaterApp::OnInit()
 
 	// 载入程序图标
 	wxInitAllImageHandlers();
-	wxBitmap bitmap(_T("icon.png"), wxBITMAP_TYPE_PNG);
-	icon.CopyFromBitmap(bitmap);
+	icon = wxIcon(_T("aaaa"));
 
 	// 载入配置文件
 	if (!LoadConfig()) {
@@ -42,7 +43,7 @@ bool RMupdaterApp::OnInit()
 		exit(1);
 	}
 
-    frame = new RMupdaterFrame(0L, _T("RMupdater"));
+    frame = new RMupdaterFrame(0L, _T(PACKAGE));
     if (!ArgvSet.NoGui) frame->Show();
 
 	// 根据参数进行自动操作

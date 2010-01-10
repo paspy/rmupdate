@@ -10,7 +10,8 @@
 #ifndef RGSS2A_H_INCLUDED
 #define RGSS2A_H_INCLUDED
 
-#define RGSS2A_MAGIC_KEY	0xDEADCAFE
+//#define RGSS2A_MAGIC_KEY	0xDEADCAFE
+#define RGSS2A_MAGIC_KEY	0x19940618
 
 #include "stdlib.h"
 
@@ -26,7 +27,7 @@ class rgss2a{
 		long magic_key_E_content(long magic_key_orn);
 		long magic_key_E_contentsize(long magic_key_orn);
 		void encrypt_content(void* buffer, unsigned long buffer_size, long content_magic_key);
-		
+
 	public:
 		rgss2a();
 		~rgss2a();
